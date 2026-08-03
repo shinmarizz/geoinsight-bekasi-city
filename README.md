@@ -91,6 +91,8 @@ Dari lokasi pengguna, sistem menghitung & menampilkan jangkauan waktu tempuh (is
 | Database Spasial | **PostgreSQL + PostGIS** | Menyimpan seluruh data hazard, transportasi, hasil analisis |
 | Backend / Analisis Geospasial | **Python** (Flask/FastAPI) + **GeoPandas, Shapely, psycopg2/SQLAlchemy** | Semua analisis (buffer, density, isochrone) dihitung di backend, hasil di-serve sebagai GeoJSON |
 | Data Serving | GeoJSON langsung via REST API | Cukup untuk skala kota/kabupaten; vector tiles (pg_tileserv) hanya jika data mulai berat |
+| Raster Processing | **rasterio + numpy** (Python) | Untuk data raster historis (mis. hasil ekspor Google Earth Engine — genangan banjir, kerentanan longsor, DEM/slope). **Default: reclassify jadi kelas risiko diskret (rendah/sedang/tinggi) → polygonize jadi vector**, lalu diperlakukan sama seperti layer hazard lain (masuk PostGIS, di-serve sebagai GeoJSON) |
+| Raster Serving (cadangan, hanya jika benar-benar butuh gradasi kontinu) | **titiler** (Python, self-host) menyajikan Cloud Optimized GeoTIFF (COG) sebagai XYZ tile | Tidak dipakai secara default. Baru dipertimbangkan kalau ada requirement eksplisit menampilkan raster mentah tanpa reklasifikasi (mis. hillshade dekoratif) |
 | Isochrone Engine | **Python: OSMnx + NetworkX** (self-compute) atau proxy ke **OpenRouteService (ORS) API** | OSMnx lebih academically defensible — metodenya bisa dijelaskan detail di laporan |
 | Heatmap | MapLibre `heatmap` layer (built-in, client-side) | Density bisa di-precompute via GeoPandas jika perlu |
 | Hosting | Netlify/GitHub Pages (frontend statis) + VPS/Railway/Render (Python backend + PostgreSQL) | Frontend & backend deploy terpisah |
@@ -102,6 +104,10 @@ Dari lokasi pengguna, sistem menghitung & menampilkan jangkauan waktu tempuh (is
 ```
 [Data Sumber: BNPB/InaRISK, BPBD, BMKG, OSM, Bappeda]
         ↓ (ETL pakai Python: GeoPandas/Shapely, cleaning & transformasi ke PostGIS)
+[Data Raster Historis: ekspor GeoTIFF, mis. dari Google Earth Engine]
+        ↓ (Raster processing pakai rasterio)
+[Reclassify jadi kelas risiko diskret → polygonize] ── DEFAULT, dipakai untuk semua layer hazard
+        ↓
 [PostgreSQL + PostGIS]
         ↓ (query spasial)
 [Backend Python: Flask/FastAPI]
@@ -112,8 +118,10 @@ Dari lokasi pengguna, sistem menghitung & menampilkan jangkauan waktu tempuh (is
         ↓ (REST API — response GeoJSON)
 [Frontend: Vanilla JavaScript + MapLibre GL JS]
    ├─ Landing Page (HTML/CSS statis)
-   └─ WebMap App (fetch API → render layer, popup, heatmap, radius, isochrone di peta)
+   └─ WebMap App (fetch API → render semua layer via geojson-source + popup + heatmap + radius + isochrone)
 ```
+
+**Cabang cadangan (tidak default, opsional):** kalau ada requirement eksplisit menampilkan raster kontinu tanpa reklasifikasi (mis. hillshade dekoratif dari DEM), raster di-convert ke COG lalu disajikan lewat **titiler** sebagai service terpisah, dan frontend menambah satu `raster-source` khusus untuk layer itu saja — tidak mengubah pipeline layer hazard utama di atas.
 
 Struktur kode frontend dipisah per modul (`map.js`, `layers.js`, `popup.js`, `api.js`) agar tetap terorganisir tanpa framework/state management library.
 
@@ -134,6 +142,10 @@ Struktur kode frontend dipisah per modul (`map.js`, `layers.js`, `popup.js`, `ap
 
 **Batas Administrasi:**
 - Badan Informasi Geospasial (BIG) — tanahair.indonesia.go.id
+
+**Data Raster Historis (turunan citra satelit):**
+- Google Earth Engine — ekspor GeoTIFF, mis. genangan banjir historis (Sentinel-1 SAR), DEM/slope untuk kerentanan longsor, curah hujan historis (CHIRPS)
+- Diproses lokal via `rasterio` sebelum masuk ke pipeline (lihat Arsitektur Sistem)
 
 ---
 
@@ -173,8 +185,17 @@ webgis-mitigasi-bencana/
 │   │   ├── db.py                    # Koneksi PostGIS
 │   │   ├── spatial_analysis.py      # GeoPandas/Shapely logic
 │   │   └── isochrone_engine.py      # OSMnx + NetworkX
+│   ├── scripts/
+│   │   ├── gee_export.py            # (opsional) trigger export data GEE via earthengine-api
+│   │   └── raster_to_vector.py      # DEFAULT: reclassify + polygonize raster jadi GeoJSON → load ke PostGIS
 │   └── requirements.txt
-├── data/                            # Data mentah & hasil ETL (gitignored jika besar)
+├── raster-tiles/                    # ⚠️ CADANGAN, tidak dipakai default — hanya jika perlu raster kontinu
+│   ├── docker-compose.yml           # (opsional) titiler sbg service Docker terpisah
+│   └── cogs/                        # (opsional) menyimpan file .tif hasil convert, di-mount ke titiler
+├── data/
+│   ├── raw/                         # data mentah dari sumber asli (BNPB, OSM, dll)
+│   ├── raster/                      # hasil ekspor GeoTIFF dari GEE (sebelum diproses)
+│   └── processed/                   # hasil ETL siap masuk PostGIS (GeoJSON/vector)
 └── README.md
 ```
 
