@@ -9,7 +9,7 @@ mapElement.id = 'map'
 mapElement.style.height = "200px"
 document.body.appendChild(mapElement)
 
-const map = new Map({
+const map = new maplibregl.Map({
   container: 'map',
   style: 'https://demotiles.maplibre.org/globe.json',
   center: [106.83, -6.19],
