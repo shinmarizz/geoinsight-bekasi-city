@@ -1,7 +1,3 @@
-# webgis-project
-
-Pipeline WebGIS Project MAPID 
-
 # WebGIS Mitigasi Bencana & Transportasi
 
 > Tugas Akhir — MAPID
@@ -30,14 +26,16 @@ Pipeline WebGIS Project MAPID
 
 ## 📖 Deskripsi Proyek
 
-Proyek ini membangun WebGIS yang memvisualisasikan data kebencanaan (multi-hazard: banjir, gempa, longsor, dsb.) yang diintegrasikan dengan data transportasi, untuk mendukung kebutuhan mitigasi bencana. Output berupa landing page + peta interaktif berbasis **MapLibre GL JS** dengan fitur analisis spasial dasar (popup, heatmap, radius, isochrone).
+Proyek ini membangun WebGIS yang memvisualisasikan data kebencanaan **banjir dan longsor** — divisualisasikan sebagai **time series** (perkembangan kejadian dari waktu ke waktu) — yang diintegrasikan dengan data transportasi, untuk mendukung kebutuhan mitigasi bencana. Output berupa landing page + peta interaktif berbasis **MapLibre GL JS** dengan fitur analisis spasial dasar (popup, heatmap, radius, isochrone).
 
-**Studi kasus:** 1 kota/kabupaten spesifik (perlu ditetapkan di minggu pertama — cek ketersediaan data terlebih dahulu). Kandidat dengan data relatif lengkap: Kota Semarang, Kota Bandung, Kabupaten Bogor, Kota Palu (riwayat gempa+likuifaksi+tsunami — cocok untuk multi-hazard).
+**Studi kasus:** 1 kota/kabupaten spesifik (perlu ditetapkan di minggu pertama — cek ketersediaan data terlebih dahulu, prioritaskan wilayah dengan riwayat banjir & longsor yang terdokumentasi baik di DIBI BNPB).
+
+**Kenapa banjir & longsor, bukan gempa:** kedua hazard ini secara alami tervisualisasikan sebagai **area yang berkembang dari waktu ke waktu** (extent genangan, zona kerentanan musiman) — cocok untuk fitur time series. Gempa bersifat kejadian instan (titik episenter), sehingga kurang koheren untuk dianimasikan per waktu. Banjir & longsor juga punya relevansi langsung ke tema transportasi (jalan tergenang/tertimbun = akses evakuasi terputus), selaras dengan 2 fitur unggulan project ini.
 
 **Batasan scope:**
 - 1 wilayah studi kasus (bukan nasional/provinsi)
-- Maksimal 2–3 jenis hazard, bukan seluruh jenis bencana Indonesia
-- Data historis/sekunder (bukan real-time sensor)
+- 2 jenis hazard: **banjir dan longsor**
+- Data historis/sekunder dengan atribut tanggal kejadian (bukan real-time sensor)
 - Isochrone memakai routing engine open-source, bukan model custom
 
 ---
@@ -47,7 +45,7 @@ Proyek ini membangun WebGIS yang memvisualisasikan data kebencanaan (multi-hazar
 Dari seluruh kemungkinan fitur, dua ide berikut dipilih sebagai **nilai jual utama** karena paling berdampak langsung ke pengguna, sekaligus tidak menambah scope teknis baru (memanfaatkan fitur MVP+Optional yang sudah direncanakan):
 
 ### 1️⃣ "Apakah lokasi saya aman?" — Cek Risiko Lokasi Pribadi
-Pengguna klik/cari alamat/titik di peta → sistem menampilkan tingkat risiko multi-hazard di titik tersebut (popup informasi) beserta radius bahaya di sekitarnya (buffer dari sumber risiko terdekat: sungai, sesar, dsb.).
+Pengguna klik/cari alamat/titik di peta → sistem menampilkan tingkat risiko banjir & longsor di titik tersebut (popup informasi) beserta radius bahaya di sekitarnya (buffer dari sumber risiko terdekat: sungai, lereng rawan longsor, dsb.).
 - **User story:** *"Sebagai warga, saya ingin tahu seberapa berisiko lokasi tempat tinggal/aktivitas saya, agar bisa bersiap sebelum bencana terjadi."*
 - **Fitur teknis yang dipakai:** Popup + Radius/Buffer (MVP)
 
@@ -65,18 +63,35 @@ Dari lokasi pengguna, sistem menghitung & menampilkan jangkauan waktu tempuh (is
 ### MVP (Wajib)
 - [ ] **Landing Page** — hero section, penjelasan tujuan, highlight wilayah & hazard yang dicover
 - [ ] **WebMap Interaktif** — base layer, kontrol toggle layer, zoom/pan/geolocate
-- [ ] **Integrasi Data Spasial** — minimal 2 layer hazard + 1 layer transportasi
+- [ ] **Integrasi Data Spasial** — 2 layer hazard (banjir & longsor) + 1 layer transportasi
 - [ ] **Popup Informasi** — klik feature/lokasi untuk detail risiko *(mendukung Fitur Unggulan #1)*
 - [ ] **Heatmap** — sebaran kepadatan kejadian bencana historis (pendukung narasi/edukasi)
 - [ ] **Radius/Buffer** — buffer jarak dari titik rawan bencana, dihitung via PostGIS/GeoPandas *(mendukung Fitur Unggulan #1)*
 - [ ] **Isochrone** — waktu tempuh ke titik evakuasi/faskes/shelter terdekat, OSMnx+NetworkX atau ORS API *(mendukung Fitur Unggulan #2 — dinaikkan prioritasnya dari Optional ke wajib karena jadi nilai jual utama)*
+- [ ] **Time Series Layer** — slider waktu untuk melihat perkembangan kejadian banjir & longsor dari tahun/periode ke periode (lihat detail di bawah)
 
 ### Optional (Jika waktu cukup)
-- [ ] Filter interaktif (jenis bencana, rentang waktu)
 - [ ] Rute alternatif transportasi saat jalan terdampak bencana
-- [ ] Dashboard statistik ringkas (jumlah kejadian, area terdampak)
+- [ ] Dashboard statistik ringkas (jumlah kejadian, area terdampak per periode)
+- [ ] Mode animasi otomatis (tombol play) untuk time series, bukan hanya geser manual
 
-> Karena isochrone naik jadi fitur wajib, alokasikan waktu development lebih awal (mulai minggu 4-5, bukan menunggu MVP lain selesai dulu) — lihat penyesuaian di Roadmap.
+> Karena isochrone & time series naik jadi fitur wajib, alokasikan waktu development lebih awal (mulai minggu 4-5, bukan menunggu MVP lain selesai dulu) — lihat penyesuaian di Roadmap.
+
+---
+
+## ⏱ Time Series — Detail Implementasi
+
+Setiap layer hazard (banjir & longsor) wajib punya atribut tanggal kejadian, sehingga bisa difilter berdasarkan waktu.
+
+**Skema data:** kolom `tanggal_kejadian` (date) wajib ada di setiap tabel PostGIS hazard — baik data dari DIBI BNPB maupun hasil polygonize raster GEE.
+
+**Pendekatan (default — MVP, tanpa refetch berulang):**
+- Semua data historis di-load sekali di awal (`fetch` saat WebMap dibuka).
+- Slider waktu (`<input type="range">`, vanilla JS, tanpa library tambahan) mengatur nilai tanggal.
+- Saat slider digeser: `map.setFilter('hazard-layer', ['<=', ['get', 'tanggal_unix'], sliderValue])` — MapLibre memfilter feature yang sudah di-load di client, tanpa perlu request baru ke API.
+- Cocok untuk skala data 1 kota/kabupaten (volume historis realistis untuk di-load sekaligus).
+
+**Alternatif (jika volume data ternyata besar):** endpoint API menerima parameter `?start_date=&end_date=`, backend query PostGIS dengan filter tanggal, frontend `setData()` ulang tiap slider berubah. Lebih berat di request tapi lebih ringan di payload awal — pertimbangkan hanya jika pendekatan default terasa lambat saat testing.
 
 ---
 
@@ -169,6 +184,7 @@ webgis-mitigasi-bencana/
 │       │   ├── map.js               # init MapLibre & basemap
 │       │   ├── layers.js            # load & toggle layer hazard/transportasi
 │       │   ├── popup.js             # handler popup feature
+│       │   ├── timeline.js          # slider waktu + setFilter time series (banjir & longsor)
 │       │   ├── analysis.js          # trigger buffer/isochrone ke backend
 │       │   └── api.js               # fetch wrapper (pakai import.meta.env.VITE_API_BASE_URL)
 │       └── styles/
@@ -268,8 +284,8 @@ npm run preview     # preview hasil build production secara lokal
 | 2 | Setup environment (PostgreSQL+PostGIS, venv Python+Flask/FastAPI, struktur frontend), wireframe, ETL awal | Environment siap, wireframe disetujui |
 | 3 | Landing page + basemap MapLibre + endpoint API pertama (batas admin, jalan) | Landing page jadi, peta dasar tampil dari API |
 | 4 | Integrasi layer hazard (2 layer) via API + styling + popup (Fitur Unggulan #1 mulai terbentuk) + **mulai bangun graph jalan OSMnx untuk isochrone** di backend (paralel, karena butuh waktu riset/testing) | Layer hazard tampil + popup jalan, prototipe graph routing siap diuji |
-| 5 | Radius/Buffer (selesaikan Fitur Unggulan #1) + Isochrone endpoint & render di peta (progres Fitur Unggulan #2) | Fitur Unggulan #1 selesai, isochrone mulai bisa didemokan |
-| 6 | Heatmap + penyempurnaan isochrone (variasi tujuan: shelter/faskes) + testing responsif | Fitur Unggulan #2 stabil, heatmap sebagai pelengkap tampil |
+| 5 | Radius/Buffer (selesaikan Fitur Unggulan #1) + Isochrone endpoint & render di peta (progres Fitur Unggulan #2) + **skema tanggal_kejadian & slider waktu dasar** | Fitur Unggulan #1 selesai, isochrone mulai bisa didemokan, slider waktu berfungsi |
+| 6 | Heatmap + penyempurnaan isochrone (variasi tujuan: shelter/faskes) + **finalisasi time series (styling per periode, testing filter banjir & longsor)** + testing responsif | Fitur Unggulan #2 stabil, time series & heatmap tampil |
 | 7 | Testing menyeluruh, optimasi performa, dokumentasi teknis, BAB 4 | Sistem stabil, draft BAB 4 |
 | 8 | Revisi, finalisasi laporan, persiapan sidang | WebGIS final + laporan lengkap, 2 fitur unggulan siap didemokan |
 
