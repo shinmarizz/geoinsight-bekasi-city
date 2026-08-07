@@ -1,4 +1,4 @@
-# WebGIS Mitigasi Bencana & Transportasi
+# WebGIS Mitigasi Bencana & Transportasi - GeoInsight 
 
 > Tugas Akhir — MAPID
 > WebGIS interaktif untuk visualisasi risiko multi-bencana yang diintegrasikan dengan data transportasi/jaringan jalan, guna mendukung mitigasi bencana di tingkat kota/kabupaten.
