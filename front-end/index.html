@@ -10,24 +10,29 @@
   <link href="/src/style.css" rel="stylesheet">
   <script type="module" src="./src/map.js"></script>
 
-  <nav class="flex justify-between p-5 px-5 bg-amber-100">
-    <div class="logo text-xl font-medium text-shadow-black hover:scale-100 bg-amber-100">Logo</div>
-      <div class="navbaritems mx-2">
-        <ul class="flex gap-8">
-          <li class="text-white font-medium hover:text-blue-200">
-            <a href="#">Home</a>
-          </li>
-          <li class="text-white font-medium hover:text-blue-200">
-            <a href="#">Tentang Kami</a>
-          </li>
-          <li class="text-white font-medium hover:text-blue-200">
-            <a href="#">Profil</a></li>
-          <li class="text-white font-medium hover:text-blue-200">
-            <a href="#">Kontak</a>
-          </li>
-        </ul>
-    </div>
-  </nav>
+  <nav class="bg-blue-100 shadow-sm">
+  <div class="container mx-auto flex items-center justify-between px-6 py-4">
+
+    <!-- Logo -->
+    <a href="#" class="text-2xl font-bold text-blue-600">
+      Logo
+    </a>
+
+    <!-- Desktop Menu -->
+    <ul class="hidden md:flex items-center gap-8">
+      <li><a href="#" class="hover:text-blue-600">Home</a></li>
+      <li><a href="#" class="hover:text-blue-600">Tentang Kami</a></li>
+      <li><a href="#" class="hover:text-blue-600">Profil</a></li>
+      <li><a href="#" class="hover:text-blue-600">Kontak</a></li>
+    </ul>
+
+    <!-- Mobile Button -->
+    <button class="md:hidden text-2xl">
+      ☰
+    </button>
+
+  </div>
+  </nav>  
 
 </body>
 </html>
