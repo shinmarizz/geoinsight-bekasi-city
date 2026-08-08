@@ -60,7 +60,7 @@
 <section id="about" class="relative pt-36 pb-32 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.08),transparent_35%)] before:pointer-events-none">
   <div class="relative z-10 mx-auto max-w-1120px px-4">
     <div class="mb-12 max-w-3xl">
-      <p class="text-lg font-bold uppercase tracking-[0.2em] text-blue-500">Permasalahan</p>
+      <p class="text-lg font-bold uppercase tracking-[0.2em] text-blue-500 items-center">Permasalahan</p>
       <h2 class="mt-4 text-2xl font-bold tracking-[-0.02em] text-slate-800 md:text-3xl">
         Informasi kebencanaan masih tersebar dan belum terintegrasi dalam satu platform geospasial.
         Kondisi ini menyulitkan pengguna dalam mengetahui informasi terkait kebencanaan.
@@ -141,7 +141,7 @@
         </div>
       </article>
 
-      <article class="group overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_20px_45px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(6,182,212,0.15)]">
+      <article class="group overflow-hidden rounded-1.5rem border border-slate-200 bg-white shadow-[0_20px_45px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(6,182,212,0.15)]">
         <div class="overflow-hidden">
           <img
             class="h-72 w-full object-cover transition duration-300 group-hover:scale-105"
@@ -162,35 +162,75 @@
   </div>
 </section>
 
-<section id="spatialanalysis" class="">
-   <div class="mx-auto max-w-1120px px-4">
-
-      <div class="grid gap-6 md:grid-cols-1">
-        <div class="mx-auto mb-10 max-w-3xl text-center">
-          <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-800 md:text-4xl">Analisis Spasial</h2>
-        </div>
-
-        <article>
-          <h2>Buffer</h2>
-          <p>Membuat radius 500 m, 1 km, atau 2 km dari titik kejadian banjir untuk mengetahui permukiman, fasilitas kesehatan, atau infrastruktur yang berada di sekitar lokasi.</p>
-        </article>
-
-        <article>
-
-        <h2>Heatmap</h2>
-        <p>Menampilkan area Kota Bekasi dengan konsentrasi kejadian banjir paling tinggi berdasarkan data historis.</p>
-
-        </article>
-
-        <article>
-
-        <h2>Isochrone</h2>
-        <p>Menentukan area yang dapat dicapai dari rumah sakit dalam waktu 5, 10, atau 15 menit saat kondisi jalan normal atau ketika beberapa ruas jalan terdampak banjir.</p>
-
-        </article>
-      </div>
-
+<section id="spatialanalysis" class="py-24 md:py-28">
+  <div class="mx-auto max-w-1120px px-4">
+    <div class="mx-auto mb-10 max-w-3xl text-center">
+      <p class="text-xs font-extrabold uppercase tracking-[0.25em] text-blue-500">Analisis</p>
+      <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-800 md:text-4xl">Analisis Spasial</h2>
     </div>
+
+    <div class="space-y-5">
+      <article class="flex items-start gap-4 rounded-1.5rem border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(37,99,235,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-6">
+        <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-inner md:h-28 md:w-28">
+          <svg viewBox="0 0 120 120" class="h-16 w-16 text-blue-600" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi buffer area bencana">
+            <circle cx="58" cy="60" r="30" stroke="currentColor" stroke-width="4" opacity="0.9"/>
+            <circle cx="58" cy="60" r="18" stroke="currentColor" stroke-width="3" opacity="0.7"/>
+            <path d="M58 60L86 35" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="86" cy="35" r="6" fill="currentColor"/>
+            <circle cx="58" cy="60" r="5" fill="currentColor"/>
+            <path d="M20 82C34 74 44 72 58 74C73 76 84 81 100 88" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-2xl font-bold text-slate-800">Buffer</h3>
+          <p class="mt-2 text-base leading-relaxed text-slate-600">
+            Membuat radius 500 m, 1 km, atau 2 km dari titik kejadian banjir untuk mengetahui permukiman,
+            fasilitas kesehatan, atau infrastruktur yang berada di sekitar lokasi.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex items-start gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(37,99,235,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-6">
+        <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-sky-50 shadow-inner md:h-28 md:w-28">
+          <svg viewBox="0 0 120 120" class="h-16 w-16 text-cyan-700" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi heatmap banjir">
+            <path d="M16 90C24 64 38 58 52 67C60 72 69 72 76 62C87 46 99 44 104 51V90H16Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="42" cy="48" r="10" fill="currentColor" opacity="0.3"/>
+            <circle cx="59" cy="42" r="14" fill="currentColor" opacity="0.25"/>
+            <circle cx="70" cy="68" r="16" fill="currentColor" opacity="0.18"/>
+            <circle cx="90" cy="54" r="12" fill="currentColor" opacity="0.2"/>
+            <path d="M24 34L36 42M52 28L58 38M78 30L82 40M92 24L96 34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-2xl font-bold text-slate-800">Heatmap</h3>
+          <p class="mt-2 text-base leading-relaxed text-slate-600">
+            Menampilkan area Kota Bekasi dengan konsentrasi kejadian banjir paling tinggi berdasarkan data historis.
+          </p>
+        </div>
+      </article>
+
+      <article class="flex items-start gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(37,99,235,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-6">
+        <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-blue-50 shadow-inner md:h-28 md:w-28">
+          <svg viewBox="0 0 120 120" class="h-16 w-16 text-sky-700" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi isochrone rute evakuasi">
+            <path d="M24 84L50 52L66 66L94 38" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="24" cy="84" r="7" fill="currentColor" opacity="0.9"/>
+            <circle cx="50" cy="52" r="7" fill="currentColor" opacity="0.9"/>
+            <circle cx="66" cy="66" r="7" fill="currentColor" opacity="0.9"/>
+            <circle cx="94" cy="38" r="7" fill="currentColor" opacity="0.9"/>
+            <path d="M20 26C31 20 40 20 48 27C60 35 64 46 78 46C88 46 95 40 102 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+            <path d="M18 92C40 78 56 82 72 70C83 62 90 56 102 52" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-2xl font-bold text-slate-800">Isochrone</h3>
+          <p class="mt-2 text-base leading-relaxed text-slate-600">
+            Menentukan area yang dapat dicapai dari rumah sakit dalam waktu 5, 10, atau 15 menit saat kondisi jalan
+            normal atau ketika beberapa ruas jalan terdampak banjir.
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
 </section>
 
 </body>
