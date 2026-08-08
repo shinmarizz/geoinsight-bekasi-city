@@ -58,7 +58,7 @@
 
 <!-- Section Information -->
 <section id="about" class="relative pt-36 pb-32 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.08),transparent_35%)] before:pointer-events-none">
-  <div class="relative z-10 mx-auto max-w-[1120px] px-4">
+  <div class="relative z-10 mx-auto max-w-1120px px-4">
     <div class="mb-12 max-w-3xl">
       <p class="text-lg font-bold uppercase tracking-[0.2em] text-blue-500">Permasalahan</p>
       <h2 class="mt-4 text-2xl font-bold tracking-[-0.02em] text-slate-800 md:text-3xl">
@@ -113,8 +113,8 @@
   </div>
 </section>
 
-<section id="information" class="relative py-24 md:py-28 bg-gradient-to-b from-blue-50 to-cyan-50">
-  <div class="mx-auto max-w-[1120px] px-4">
+<section id="information" class="relative py-24 md:py-28 bg-linear-to-b from-blue-50 to-cyan-50">
+  <div class="mx-auto max-w-1120px px-4">
     <div class="mx-auto mb-10 max-w-3xl text-center">
       <p class="text-xs font-extrabold uppercase tracking-[0.25em] text-blue-500">Jenis Bencana</p>
       <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-800 md:text-4xl">
@@ -123,7 +123,7 @@
     </div>
 
     <div class="grid gap-6 md:grid-cols-2">
-      <article class="group overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_20px_45px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(6,182,212,0.15)]">
+      <article class="group overflow-hidden rounded-1.5rem border border-slate-200 bg-white shadow-[0_20px_45px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(6,182,212,0.15)]">
         <div class="overflow-hidden">
           <img
             class="h-72 w-full object-cover transition duration-300 group-hover:scale-105"
@@ -160,6 +160,37 @@
       </article>
     </div>
   </div>
+</section>
+
+<section id="spatialanalysis" class="">
+   <div class="mx-auto max-w-1120px px-4">
+
+      <div class="grid gap-6 md:grid-cols-1">
+        <div class="mx-auto mb-10 max-w-3xl text-center">
+          <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-800 md:text-4xl">Analisis Spasial</h2>
+        </div>
+
+        <article>
+          <h2>Buffer</h2>
+          <p>Membuat radius 500 m, 1 km, atau 2 km dari titik kejadian banjir untuk mengetahui permukiman, fasilitas kesehatan, atau infrastruktur yang berada di sekitar lokasi.</p>
+        </article>
+
+        <article>
+
+        <h2>Heatmap</h2>
+        <p>Menampilkan area Kota Bekasi dengan konsentrasi kejadian banjir paling tinggi berdasarkan data historis.</p>
+
+        </article>
+
+        <article>
+
+        <h2>Isochrone</h2>
+        <p>Menentukan area yang dapat dicapai dari rumah sakit dalam waktu 5, 10, atau 15 menit saat kondisi jalan normal atau ketika beberapa ruas jalan terdampak banjir.</p>
+
+        </article>
+      </div>
+
+    </div>
 </section>
 
 </body>
