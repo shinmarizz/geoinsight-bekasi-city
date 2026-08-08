@@ -6,7 +6,7 @@ import './style.css'
 
 const mapElement = document.createElement('div')
 mapElement.id = 'map'
-mapElement.style.height = "200px"
+mapElement.style.height = "500px"
 document.body.appendChild(mapElement)
 
 const map = new maplibregl.Map({
