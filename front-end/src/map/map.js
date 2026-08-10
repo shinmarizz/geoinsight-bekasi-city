@@ -2,7 +2,6 @@ import {Map, FullscreenControl,GlobeControl, LogoControl} from 'maplibre-gl'
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.2.0/dist/maplibre-gl.mjs';
 import 'maplibre-gl/dist/maplibre-gl.css'
 
-
 const mapElement = document.createElement('div')
 mapElement.id = 'map'
 mapElement.style.height = "500px"

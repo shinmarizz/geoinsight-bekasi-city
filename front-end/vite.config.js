@@ -1,4 +1,4 @@
-import {defineConfig} from 'vite'
+import {defineConfig, rollupVersion} from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import {fileURLToPath} from "node:url"
 
