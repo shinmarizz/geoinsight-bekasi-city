@@ -6,9 +6,14 @@ const tailwindSRC = document.createElement('script')
 tailwindSRC.src = 'https://cdn.tailwindcss.com'
 document.head.appendChild(tailwindSRC)
 
+document.body.style.margin = '0'
+document.body.className = 'h-screen, w-ful, bg-slate-50, font-sans overflow-hidden, text-slate-800'
+
 const mapElement = document.createElement('div')
 mapElement.id = 'map'
-mapElement.style.height = "500px"
+mapElement.style.height = "1000px"
+mapElement.style.margin = "0 0 10 10"
+mapElement.style.flex = "1"
 document.body.appendChild(mapElement)
 
 const map = new maplibregl.Map({
