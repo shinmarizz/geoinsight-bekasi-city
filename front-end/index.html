@@ -8,7 +8,6 @@
 </head>
 <body>
   <link href="/src/style.css" rel="stylesheet">
-  <script type="module" src="./src/map/map.js"></script>
   <nav class="border-b border-blue-200/70 bg-white/60 shadow-sm backdrop-blur-md">
   <div class="container mx-auto flex items-center justify-between px-6 py-4">
 
@@ -287,17 +286,18 @@
     </div>
 
     <div class="pt-5">
-         <a href="./src/map/map.html"
-          class="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg px-8 py-4 rounded-full shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95">
-          <span>Mulai Sekarang</span>
-          <svg
-            class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-            fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </a>
-  </div>
+  <a href="./src/map/map.html" id="openMapBtn"
+     class="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg px-8 py-4 rounded-full shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95">
+    <span>Mulai Sekarang</span>
+    <svg
+      class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+      fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+    </svg>
+  </a>
+</div>
+
 </section>
 
 </body>

@@ -8,20 +8,21 @@ let mapElement = existingMap
 if (!mapElement) {
   mapElement = document.createElement('div')
   mapElement.id = 'map'
-  mapElement.style.width = '80%'
-  mapElement.style.height = '50vh'
+  mapElement.style.width = '100%'
+  mapElement.style.height = '100vh'
   document.body.appendChild(mapElement)
 }
 
 document.body.style.margin = '0'
 document.body.style.padding = '0'
-document.body.style.overflow = 'hidden'
+document.body.style.overflowX = 'hidden'
+document.body.style.overflowY = 'auto'
 
 const app = document.createElement('div')
 app.style.display = 'flex'
 app.style.flexDirection = 'column'
 app.style.width = '100%'
-app.style.height = '100vh'
+app.style.minHeight = '100vh'
 
 const header = document.createElement('header')
 header.className = 'bg-slate-900 text-white h-16 flex items-center justify-between px-6 shadow-md shrink-0'
@@ -30,8 +31,8 @@ header.style.alignItems = 'center'
 header.style.justifyContent = 'space-between'
 header.style.height = '64px'
 header.style.padding = '0 24px'
-header.style.background = '#0f172a'
-header.style.color = '#fff'
+header.style.background = 'white'
+header.style.color = 'black'
 header.style.boxShadow = '0 2px 10px rgba(15, 23, 42, 0.2)'
 
 const name = document.createElement('div')
@@ -43,12 +44,27 @@ name.style.letterSpacing = '0.04em'
 name.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:#10b981"></span> GeoInsight Dashboard'
 
 const profile = document.createElement('div')
-profile.textContent = 'Mode Analisis Spasial'
-profile.style.color = '#cbd5e1'
-profile.style.fontSize = '14px'
-profile.style.border =  "3px solid blue"
-profile.style.borderWidth = "5px";
-profile.style.backgroundColor = "yellow";
+profile.textContent = 'Analisis Spasial'
+profile.style.color = 'black'
+profile.style.fontSize = '10px'
+profile.style.fontWeight = '500px'
+profile.style.letterSpacing = '0.5px'
+profile.style.padding = '10px 20px'
+profile.style.borderRadius = '10px'
+profile.style.border = '2px solid black'
+profile.style.background = 'linear-gradient(pearl)'
+profile.style.display = 'inline-flex'
+profile.style.alignItems = 'center'
+profile.style.gap = '3px'
+profile.style.transition = 'transform 0.2s ease, box-shadow 0.1 s'
+profile.style.cursor = 'pointer'
+
+profile.addEventListener('mouseenter', () => {
+  profile.style.transform = 'translateY(-2px) scale(1.02)'
+})
+profile.addEventListener('mouseleave', () => {
+  profile.style.transform = 'translateY(0) scale(1)'
+})
 
 header.append(name, profile)
 
@@ -80,10 +96,10 @@ map.addControl(new maplibregl.FullscreenControl())
 map.addControl(new maplibregl.GlobeControl())
 
 map.on('load', () => {
-  console.log('Map berhasil dimuat')
-  map.resize()
+    console.log('Berhasil')
+    map.resize()
 })
 
 window.addEventListener('load', () => {
-  map.resize()
+    map.resize()
 })
