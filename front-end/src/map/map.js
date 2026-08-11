@@ -1,6 +1,10 @@
-import {Map, FullscreenControl,GlobeControl, LogoControl} from 'maplibre-gl'
+import {Map, FullscreenControl, GlobeControl, LogoControl, NavigationControl} from 'maplibre-gl'
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.2.0/dist/maplibre-gl.mjs';
 import 'maplibre-gl/dist/maplibre-gl.css'
+
+const tailwindSRC = document.createElement('script')
+tailwindSRC.src = 'https://cdn.tailwindcss.com'
+document.head.appendChild(tailwindSRC)
 
 const mapElement = document.createElement('div')
 mapElement.id = 'map'
