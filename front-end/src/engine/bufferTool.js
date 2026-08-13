@@ -2,7 +2,7 @@ import { geojsonToWKT, wktToGeoJSON } from "@terraformer/wkt"
 import { API_BASE } from "../config"
 import { compute } from "./areaTool"
 
-export function storeBuffer(map, event){
+export function bufferGeometry(map, event){
     const geometry = event.features[0].geometry
     const wkt = geojsonToWKT(geometry)
 
