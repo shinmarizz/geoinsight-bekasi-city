@@ -6,7 +6,7 @@ export function bufferGeometry(map, event){
     const geometry = event.features[0].geometry
     const wkt = geojsonToWKT(geometry)
 
-    computeBuffer()    
+    computeBuffer(map, wkt)    
 }
 
 async function computeBuffer(map, wkt){
@@ -19,10 +19,22 @@ async function computeBuffer(map, wkt){
         })
     })
 
-    const result = await responsejsp.json()
+    const result = await response.json()
     const data  = wktToGeoJSON(result.wkt)
 
-    addBuffer(map,data)
+    console.log('Buffer geometry:', data)
+    
+    // Update buffer geometry source di map
+    if (map.getSource('buffer-geometry-source')) {
+        map.getSource('buffer-geometry-source').setData({
+            type: 'FeatureCollection',
+            features: [{
+                type: 'Feature',
+                geometry: data,
+                properties: {}
+            }]
+        })
+    }
 
     return result
 }
