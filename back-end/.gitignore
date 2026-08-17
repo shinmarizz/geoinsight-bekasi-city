@@ -1,1 +1,29 @@
-main.py
+# Dependensi
+/node_modules/
+
+# File Environment & Konfigurasi Rahasia
+.env
+.env.local
+.env.*.local
+
+# Log dan Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# Build / Output Folder (jika pakai TypeScript atau Babel)
+/dist/
+/build/
+
+# Direktori Testing & Coverage
+/coverage/
+.nyc_output/
+
+# Cache Editor & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
