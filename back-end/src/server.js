@@ -2,7 +2,10 @@ const express = require('express')
 
 const app = express()
 
-app.get("/geoinsight")
+app.get("/geoinsight", (req, res)=>{
+    res.json({message:"hello"})
+
+})
 
 const PORT = 5001
 const server = app.listen(PORT, ()=>{
