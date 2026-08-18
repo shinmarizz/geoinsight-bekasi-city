@@ -1,17 +1,12 @@
 const express = require('express')
+const cors = require('cors')
+require("dotenv").config()
 
+const puskesmasRoute = require("../routes/puskesmas")
 const app = express()
-
-app.get("/geoinsight", (req, res)=>{
-    res.json({message:"hello"})
-
-})
-
-const PORT = 5001
-const server = app.listen(PORT, ()=>{
-    console.log(`Berhasil ${PORT}`)
-})
 
 
 //GET POST PUT DELETE
-// https://localhost:5001/geoinsight
+// http://localhost:5001/geoinsight
+
+// AUTH - signin, signup
