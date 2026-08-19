@@ -1,4 +1,4 @@
-import { Pool } from "../src/db" 
+import { Pool } from "../src/db.js" 
 
 export default getPuskesmasData 
 const getPuskesmasData = async () => {

@@ -26,3 +26,5 @@ const getPuskesmasData = async (req, res) => {
     }
 }
 
+
+

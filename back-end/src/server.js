@@ -2,10 +2,10 @@ import express from 'express'
 import cors from 'cors'
 require("dotenv").config()
 
-import puskesmasRoute from "../routes/puskesmas"
-import floodRoute from "../routes/flood"
-import bufferRoute from "../routes/buffer"
-import hospitalsRoute from "../routes/hospitals"
+import puskesmasRoute from "../routes/puskesmas.js"
+import floodRoute from "../routes/flood.js"
+import bufferRoute from "../routes/buffer.js"
+import hospitalsRoute from "../routes/hospitals.js"
 
 const app = express()
 
