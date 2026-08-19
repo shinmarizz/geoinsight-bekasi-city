@@ -1,3 +1,13 @@
-const { Pool } = require("express")
+import { Pool } from "express"
+import pool from "../src/db"
+import { getPuskesmasData } from "../controllers/puskesmas.controller"
+
 const router = express.Router()
-const pool = require("../src/db")
+
+router.get("/", getPuskesmasData =>{
+    res.json({
+        message:"Puskesmas endpoint"
+    })
+})
+
+module.export = router

@@ -1,11 +1,11 @@
-const express = require('express')
-const cors = require('cors')
+import express from 'express'
+import cors from 'cors'
 require("dotenv").config()
 
-const puskesmasRoute = require("../routes/puskesmas")
-const floodRoute = require("../routes/flood")
-const bufferRoute = require("../routes/buffer")
-const hospitalsRoute = require("../routes/hospitals")
+import puskesmasRoute from "../routes/puskesmas"
+import floodRoute from "../routes/flood"
+import bufferRoute from "../routes/buffer"
+import hospitalsRoute from "../routes/hospitals"
 
 const app = express()
 
