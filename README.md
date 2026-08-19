@@ -513,156 +513,20 @@ Pastikan sudah installed:
 
 #### **1. Clone Repository**
 
-```bash
-git clone https://github.com/yourusername/mapid-project.git
-cd mapid-project
-```
 
 #### **2. Setup Backend (Python)**
 
-```bash
-# Masuk direktori backend
-cd back-end
-
-# Buat virtual environment
-python -m venv venv
-
-# Aktifkan venv
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Setup PostgreSQL & PostGIS
-# Buat database (di PostgreSQL shell atau pgAdmin):
-# CREATE DATABASE geoinsight_db;
-# CREATE EXTENSION postgis;
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env dengan detail PostgreSQL, API keys, dll:
-# - DATABASE_URL=postgresql://user:password@localhost:5432/geoinsight_db
-# - FLASK_ENV=development
-# - OPENROUTESERVICE_KEY=your_key
-
-# Load initial data (ETL)
-python scripts/etl_admin.py
-python scripts/etl_hazard.py
-python scripts/etl_transport.py
-python scripts/build_network.py
-
-# Jalankan backend
-python main.py
-# Output: Running on http://127.0.0.1:5000
-```
 
 **Verifikasi Backend:**
 
-```bash
-# Test API health check
-curl http://localhost:5000/api/health
-# Expected: {"status": "ok", "version": "1.0.0"}
-
-# Test data endpoint
-curl http://localhost:5000/api/hazard/banjir
-# Expected: GeoJSON FeatureCollection
-```
-
 #### **3. Setup Frontend (Node.js)**
 
-```bash
-# Buka terminal baru, di direktori project root
-cd front-end
-
-# Install Node dependencies
-npm install
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env:
-# VITE_API_BASE_URL=http://localhost:5000
-# VITE_MAPTILER_KEY=your_maptiler_api_key
-
-# Jalankan dev server
-npm run dev
-# Output: Local: http://localhost:5173/
-```
 
 **Akses Aplikasi:**
-- Landing Page: [http://localhost:5173/](http://localhost:5173/)
-- WebMap: [http://localhost:5173/map](http://localhost:5173/map)
 
 #### **4. Build untuk Production**
 
-```bash
-# Frontend build
-cd front-end
-npm run build
-# Output: dist/ folder (siap deploy ke Netlify)
-
-# Backend package (gunakan Gunicorn)
-cd ../back-end
-gunicorn -w 4 -b 0.0.0.0:5000 main:app
-```
-
 #### **5. Using Docker (Optional)**
-
-```bash
-# Backend Docker
-cd back-end
-docker build -t geoinsight-backend:latest .
-docker run -p 5000:5000 --env-file .env geoinsight-backend:latest
-
-# Full stack dengan docker-compose (di root)
-docker-compose up -d
-# Services: frontend (5173), backend (5000), postgres (5432)
-```
-
-**`docker-compose.yml` (Optional):**
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgis/postgis:13-3.1
-    environment:
-      POSTGRES_DB: geoinsight_db
-      POSTGRES_USER: geouser
-      POSTGRES_PASSWORD: geopass123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build: ./back-end
-    ports:
-      - "5000:5000"
-    environment:
-      DATABASE_URL: postgresql://geouser:geopass123@postgres:5432/geoinsight_db
-      FLASK_ENV: development
-    depends_on:
-      - postgres
-    volumes:
-      - ./back-end:/app
-
-  frontend:
-    build: ./front-end
-    ports:
-      - "5173:5173"
-    environment:
-      VITE_API_BASE_URL: http://localhost:5000
-    volumes:
-      - ./front-end:/app
-      - /app/node_modules
-
-volumes:
-  postgres_data:
-```
 
 ---
 
@@ -834,14 +698,6 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk guidelines detail.
 - [Spatial Database Performance](https://trac.osgeo.org/postgis/wiki/Performance)
 - [GeoJSON Specification](https://tools.ietf.org/html/rfc7946)
 - [RESTful API Design](https://restfulapi.net/)
-
----
-
-**Last Updated:** 2024-08-19  
-**Project Status:** Development (Minggu 1-2)  
-**Maintained By:** [Your Name / Team]  
-**Advisor:** [Pembimbing MAPID]  
-**Institution:** MAPID (Magister Administrasi dan Perencanaan Informasi Geografis)
 
 ---
 
