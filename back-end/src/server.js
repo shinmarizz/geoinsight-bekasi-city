@@ -1,22 +1,26 @@
 import express from 'express'
 import cors from 'cors'
-require("dotenv").config()
+import { configDotenv } from 'dotenv'
 
 import puskesmasRoute from "../routes/puskesmas.js"
 import floodRoute from "../routes/flood.js"
 import bufferRoute from "../routes/buffer.js"
 import hospitalsRoute from "../routes/hospitals.js"
 
+configDotenv()
+
 const app = express()
 
+app.use(cors())
 
-app.use(/api/routes, "puskesmasRoute")
-app.use(/api/routes, "floodRoute")
-app.use(/api/routes, "bufferRoute")
-app.use(/api/route, "hospitalRoute")
 
-const PORT = process.env.PORT || 5000
+app.use('/api/routes', puskesmasRoute)
+app.use('/api/routes', floodRoute)
+app.use('/api/routes', bufferRoute)
+app.use('/api/routes', hospitalsRoute)
 
-app.listen(port, ()=>{
+const PORT = process.env.PORT || 5173
+
+app.listen(PORT, ()=>{
     console.log(`Server is running! oh http://localhost:${PORT}`)
 })

@@ -1,13 +1,8 @@
-import { Pool } from "express"
-import pool from "../src/db"
-import { getPuskesmasData } from "../controllers/puskesmas.controller"
+import express from "express"
+import { getPuskesmasData } from "../controllers/puskesmas.controller.js"
 
 const router = express.Router()
 
-router.get("/", getPuskesmasData =>{
-    res.json({
-        message:"Puskesmas endpoint"
-    })
-})
+router.get("/puskesmas", getPuskesmasData)
 
-module.export = router
+export default router

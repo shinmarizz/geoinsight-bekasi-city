@@ -1,6 +1,5 @@
 import puskesmasService from "../services/puskesmasService.js"; // adjust path as needed
-export default { getPuskesmasData }
-const getPuskesmasData = async (req, res) => {
+export const getPuskesmasData = async (req, res) => {
     try {
         const data = await puskesmasService.getPuskesmasData();
 
@@ -12,7 +11,7 @@ const getPuskesmasData = async (req, res) => {
                     gid: row.gid,
                     nama: row.nama
                 },
-                geom: row.geom
+                geometry: row.geom
             }))
         }
 
@@ -25,6 +24,8 @@ const getPuskesmasData = async (req, res) => {
         })
     }
 }
+
+export default { getPuskesmasData }
 
 
 

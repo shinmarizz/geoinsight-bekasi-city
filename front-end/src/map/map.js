@@ -5,6 +5,7 @@ import { areaGeometry } from '../engine/areaTool';
 import { bufferGeometry } from '../engine/bufferTool';  
 import { addPopup } from '../../popUps/basicpopups';
 import { addAttribution } from '../../controls/controlsBasic';  
+import { API_BASE } from '../config';
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -95,6 +96,14 @@ const map = new maplibregl.Map({
   maplibreLogo: true,
 })
 
+const responsePuskesmas = await fetch(`${API_BASE}/api/routes/puskesmas`)
+
+if (!responsePuskesmas.ok) {
+  throw new Error(`Gagal mengambil data puskesmas: ${responsePuskesmas.status}`)
+}
+
+const puskesmas = await responsePuskesmas.json()
+
 map.addControl(new maplibregl.NavigationControl())
 map.addControl(new maplibregl.FullscreenControl())
 map.addControl(new maplibregl.GlobeControl())
@@ -107,70 +116,31 @@ map.on('load', () => {
     map.resize()
     
     // Tambahkan layer untuk Area Geometry
-    map.addSource('area-geometry-source', {
-        type: 'geojson',
-        data: {
-            type: 'FeatureCollection',
-            features: []
-        }
+    map.addSource('puskesmasRoute', {
+        type:'geojson',
+      data: puskesmas
     })
     
     map.addLayer({
-        id: 'area-geometry-layer',
-        type: 'fill',
-        source: 'area-geometry-source',
+        id: 'puskesmas',
+      type: 'circle',
+        source: 'puskesmasRoute',
         paint: {
-            'fill-color': '#0080ff',
-            'fill-opacity': 0.5
+        'circle-color': '#0080ff',
+        'circle-radius': 7,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2
         }
     })
+
+      if (puskesmas.features.length > 0) {
+        const bounds = new maplibregl.LngLatBounds()
+        puskesmas.features.forEach((feature) => {
+          bounds.extend(feature.geometry.coordinates)
+        })
+        map.fitBounds(bounds, { padding: 60, maxZoom: 13 })
+      }
     
-    map.addLayer({
-        id: 'area-geometry-outline',
-        type: 'line',
-        source: 'area-geometry-source',
-        paint: {
-            'line-color': '#0080ff',
-            'line-width': 2
-        }
-    })
-    
-    // Tambahkan layer untuk Buffer Geometry
-    map.addSource('buffer-geometry-source', {
-        type: 'geojson',
-        data: {
-            type: 'FeatureCollection',
-            features: []
-        }
-    })
-    
-    map.addLayer({
-        id: 'buffer-geometry-layer',
-        type: 'fill',
-        source: 'buffer-geometry-source',
-        paint: {
-            'fill-color': '#ff8000',
-            'fill-opacity': 0.4
-        }
-    })
-    
-    map.addLayer({
-        id: 'buffer-geometry-outline',
-        type: 'line',
-        source: 'buffer-geometry-source',
-        paint: {
-            'line-color': '#ff8000',
-            'line-width': 2,
-            'line-dasharray': [4, 4]
-        }
-    })
-    
-    // Event listener untuk menghitung Area Geometry saat user klik
-    map.on('click', 'area-geometry-layer', (event) => {
-        console.log('Area Geometry clicked')
-        areaGeometry(event)
-        addPopup(map, event)
-    })
     
     // Event listener untuk menghitung Buffer Geometry saat user klik
     map.on('click', 'buffer-geometry-layer', (event) => {
@@ -187,12 +157,6 @@ map.on('load', () => {
         map.getCanvas().style.cursor = ''
     })
     
-    map.on('mouseenter', 'buffer-geometry-layer', () => {
-        map.getCanvas().style.cursor = 'pointer'
-    })
-    map.on('mouseleave', 'buffer-geometry-layer', () => {
-        map.getCanvas().style.cursor = ''
-    })
 })
 
 window.addEventListener('load', () => {
