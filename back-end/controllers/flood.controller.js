@@ -1,5 +1,4 @@
 import floodService from "../services/floodService.js"
-import getFloodData from "../services/floodService.js"
 
 export const getFloodData = async (req,res) => {
     try{
@@ -7,7 +6,7 @@ export const getFloodData = async (req,res) => {
 
         const geojson = {
             type : "FeatureCollection",
-            features: data.map((row) => (
+            features: (row) => (
                 {
                     type:"Feature",
                     properties:{
@@ -16,7 +15,7 @@ export const getFloodData = async (req,res) => {
                     },
                     geometry:row.geom
                 }
-            ))
+            )
         }   
         res.json(geojson)
 

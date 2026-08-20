@@ -104,6 +104,11 @@ if (!responsePuskesmas.ok) {
 
 const puskesmas = await responsePuskesmas.json()
 
+const responseFlood = await fetch(`${API_BASE}/api/routes/flood`)
+
+if (!responseFlood.ok){
+  throw new Error(`Gagal mengambil data flood: ${responseFlood.status}`)
+}
 map.addControl(new maplibregl.NavigationControl())
 map.addControl(new maplibregl.FullscreenControl())
 map.addControl(new maplibregl.GlobeControl())
@@ -115,7 +120,7 @@ map.on('load', () => {
     console.log('Berhasil')
     map.resize()
     
-    // Tambahkan layer untuk Area Geometry
+    // Puskesmas
     map.addSource('puskesmasRoute', {
         type:'geojson',
       data: puskesmas
@@ -133,7 +138,26 @@ map.on('load', () => {
         }
     })
 
-      if (puskesmas.features.length > 0) {
+    // Flood 
+
+    map.addSource('floodRoute', {
+        type:'geojson',
+      data: flood
+    })
+    
+    map.addLayer({
+        id: 'flood',
+      type: 'circle',
+        source: 'floodRoute',
+        paint: {
+        'circle-color': '#0080ff',
+        'circle-radius': 7,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2
+        }
+    })
+
+      if (flood.features.length > 0) {
         const bounds = new maplibregl.LngLatBounds()
         puskesmas.features.forEach((feature) => {
           bounds.extend(feature.geometry.coordinates)
