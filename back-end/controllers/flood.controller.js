@@ -2,20 +2,20 @@ import floodService from "../services/floodService.js"
 
 export const getFloodData = async (req,res) => {
     try{
-        const data  = floodService.getFloodData()
+        const data = await floodService.getFloodData()
 
         const geojson = {
             type : "FeatureCollection",
-            features: (row) => (
-                {
+            features: data.map((row) => ({
                     type:"Feature",
                     properties:{
                         gid:row.gid,
-                        desa:row.desa
+                        kecamatan: row.kecamatan,
+                        desa:row.desa,
+                        kelas_risi: row.kelas_risi
                     },
                     geometry:row.geom
-                }
-            )
+                }))
         }   
         res.json(geojson)
 

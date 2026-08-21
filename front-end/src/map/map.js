@@ -5,7 +5,7 @@ import { areaGeometry } from '../engine/areaTool';
 import { bufferGeometry } from '../engine/bufferTool';  
 import { addPopup } from '../../popUps/basicpopups';
 import { addAttribution } from '../../controls/controlsBasic';  
-import { API_BASE } from '../config';
+import { API_BASE, DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -90,31 +90,114 @@ if (!existingMap) {
 
 const map = new maplibregl.Map({
   container: mapElement,
-  style: 'https://demotiles.maplibre.org/style.json',
+  style: GEOMAPID_STYLE,
   center: [107.0, -6.2],
   zoom: 10,
   maplibreLogo: true,
 })
 
-const responsePuskesmas = await fetch(`${API_BASE}/api/routes/puskesmas`)
+let usingFallbackStyle = false
+map.on('error', (event) => {
+  if (!usingFallbackStyle && GEOMAPID_STYLE !== DEFAULT_MAP_STYLE) {
+    console.error('Style GeoMapid tidak dapat dimuat. Menggunakan style fallback.', event.error)
+    usingFallbackStyle = true
+    map.setStyle(DEFAULT_MAP_STYLE)
+  }
+})
 
-if (!responsePuskesmas.ok) {
-  throw new Error(`Gagal mengambil data puskesmas: ${responsePuskesmas.status}`)
+const emptyFeatureCollection = { type: 'FeatureCollection', features: [] }
+
+const loadGeoJson = async (path, label) => {
+  const response = await fetch(`${API_BASE}/api/routes/${path}`)
+  if (!response.ok) {
+    throw new Error(`Gagal mengambil data ${label}: ${response.status}`)
+  }
+  return response.json()
 }
 
-const puskesmas = await responsePuskesmas.json()
+const [puskesmasResult, floodResult] = await Promise.allSettled([
+  loadGeoJson('puskesmas', 'puskesmas'),
+  loadGeoJson('flood', 'flood')
+])
 
-const responseFlood = await fetch(`${API_BASE}/api/routes/flood`)
+const puskesmas = puskesmasResult.status === 'fulfilled'
+  ? puskesmasResult.value
+  : emptyFeatureCollection
+const flood = floodResult.status === 'fulfilled'
+  ? floodResult.value
+  : emptyFeatureCollection
 
-if (!responseFlood.ok){
-  throw new Error(`Gagal mengambil data flood: ${responseFlood.status}`)
-}
+if (puskesmasResult.status === 'rejected') console.error(puskesmasResult.reason)
+if (floodResult.status === 'rejected') console.error(floodResult.reason)
+
 map.addControl(new maplibregl.NavigationControl())
 map.addControl(new maplibregl.FullscreenControl())
 map.addControl(new maplibregl.GlobeControl())
 
 // Tambahkan Attribution
 addAttribution(map, '')
+
+const addLayerSwitcher = () => {
+  const panel = document.createElement('fieldset')
+  panel.setAttribute('aria-label', 'Daftar layer peta')
+  Object.assign(panel.style, {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    zIndex: '2',
+    margin: '0',
+    padding: '20px 16px',
+    minWidth: '170px',
+    border: '1px solid #d1d5db',
+    borderRadius: '8px',
+    background: 'rgba(255, 255, 255, 0.95)',
+    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)',
+    font: '13px/1.4 sans-serif'
+  })
+
+  const title = document.createElement('h4')
+  title.innerText = 'Layer Peta'
+  title.style.margin = '0 0 8px 0'
+  title.style.fontSize = '15px'
+  title.style.fontWeight = '700'
+  title.style.color = '#111827'
+  panel.appendChild(title)
+
+  const layers = [
+    { id: 'puskesmas', label: 'Puskesmas', color: '#0080ff' },
+    { id: 'flood', label: 'Wilayah banjir', color: '#de2d26' }
+  ]
+
+  layers.forEach(({ id, label, color }) => {
+    const row = document.createElement('label')
+    row.style.display = 'flex'
+    row.style.alignItems = 'center'
+    row.style.gap = '10px'
+    row.style.marginTop = '10px'
+    row.style.cursor = 'pointer'
+
+    const checkbox = document.createElement('input')
+    checkbox.type = 'checkbox'
+    checkbox.checked = true
+    checkbox.addEventListener('change', () => {
+      map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none')
+    })
+
+    const swatch = document.createElement('span')
+    Object.assign(swatch.style, {
+      width: '10px',
+      height: '10px',
+      display: 'inline-block',
+      background: color,
+      border: '1px solid #374151'
+    })
+
+    row.append(checkbox, swatch, document.createTextNode(label))
+    panel.appendChild(row)
+  })
+
+  mapElement.appendChild(panel)
+}
 
 map.on('load', () => {
     console.log('Berhasil')
@@ -147,42 +230,38 @@ map.on('load', () => {
     
     map.addLayer({
         id: 'flood',
-      type: 'circle',
+      type: 'fill',
         source: 'floodRoute',
         paint: {
-        'circle-color': '#0080ff',
-        'circle-radius': 7,
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 2
+        'fill-color': [
+          'match',
+          ['get', 'kelas_risi'],
+          'RENDAH', '#2ca25f',
+          'SEDANG', '#fec44f',
+          'TINGGI', '#de2d26',
+          '#9ca3af'
+        ],
+        'fill-opacity': 0.35,
+        'fill-outline-color': '#374151'
         }
     })
 
-      if (flood.features.length > 0) {
+      addLayerSwitcher()
+
+      if (puskesmas.features.length > 0) {
         const bounds = new maplibregl.LngLatBounds()
         puskesmas.features.forEach((feature) => {
           bounds.extend(feature.geometry.coordinates)
         })
         map.fitBounds(bounds, { padding: 60, maxZoom: 13 })
       }
-    
-    
-    // Event listener untuk menghitung Buffer Geometry saat user klik
-    map.on('click', 'buffer-geometry-layer', (event) => {
-        console.log('Buffer Geometry clicked')
-        bufferGeometry(map, event)
-        addPopup(map, event)
-    })
-    
-    // Ubah cursor ketika hover di layer
-    map.on('mouseenter', 'area-geometry-layer', () => {
-        map.getCanvas().style.cursor = 'pointer'
-    })
-    map.on('mouseleave', 'area-geometry-layer', () => {
-        map.getCanvas().style.cursor = ''
-    })
+
     
 })
 
 window.addEventListener('load', () => {
     map.resize()
 })
+
+
+
