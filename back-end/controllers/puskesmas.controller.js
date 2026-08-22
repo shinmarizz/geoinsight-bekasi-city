@@ -9,7 +9,12 @@ export const getPuskesmasData = async (req, res) => {
                 type: "Feature",
                 properties: {
                     gid: row.gid,
-                    nama: row.nama
+                    nama: row.nama,
+                    alamat: row.alamat,
+                    kecamatan: row.kecamatan,
+                    desa: row.desa,
+                    longitude: row.longitude,
+                    latitude: row.latitude
                 },
                 geometry: row.geom
             }))

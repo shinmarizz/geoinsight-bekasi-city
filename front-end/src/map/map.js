@@ -1,10 +1,7 @@
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { Map, Marker, Popup } from 'maplibre-gl';
-import { areaGeometry } from '../engine/areaTool';
-import { bufferGeometry } from '../engine/bufferTool';  
-import { addPopup } from '../../popUps/basicpopups';
-import { API_BASE, DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
+import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
+import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -12,82 +9,12 @@ let mapElement = existingMap
 if (!mapElement) {
   mapElement = document.createElement('div')
   mapElement.id = 'map'
-  mapElement.style.width = '100%'
-  mapElement.style.height = '100vh'
   document.body.appendChild(mapElement)
 }
 
-mapElement.style.position = 'relative'
-
 document.body.style.margin = '0'
 document.body.style.padding = '0'
-document.body.style.overflowX = 'hidden'
-document.body.style.overflowY = 'auto'
-
-const app = document.createElement('div')
-app.style.display = 'flex'
-app.style.flexDirection = 'column'
-app.style.width = '100%'
-app.style.minHeight = '100vh'
-
-const header = document.createElement('header')
-header.className = 'bg-slate-900 text-white h-16 flex items-center justify-between px-6 shadow-md shrink-0'
-header.style.display = 'flex'
-header.style.alignItems = 'center'
-header.style.justifyContent = 'space-between'
-header.style.height = '64px'
-header.style.padding = '0 24px'
-header.style.background = 'white'
-header.style.color = 'black'
-header.style.boxShadow = '0 2px 10px rgba(15, 23, 42, 0.2)'
-
-const name = document.createElement('div')
-name.style.display = 'flex'
-name.style.alignItems = 'center'
-name.style.gap = '10px'
-name.style.fontWeight = '700'
-name.style.letterSpacing = '0.04em'
-name.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:#10b981"></span> GeoInsight Dashboard'
-
-const profile = document.createElement('div')
-profile.textContent = 'Analisis Spasial'
-profile.style.color = 'black'
-profile.style.fontSize = '10px'
-profile.style.fontWeight = '500px'
-profile.style.letterSpacing = '0.5px'
-profile.style.padding = '10px 20px'
-profile.style.borderRadius = '10px'
-profile.style.border = '2px solid black'
-profile.style.background = 'linear-gradient(pearl)'
-profile.style.display = 'inline-flex'
-profile.style.alignItems = 'center'
-profile.style.gap = '3px'
-profile.style.transition = 'transform 0.2s ease, box-shadow 0.1 s'
-profile.style.cursor = 'pointer'
-
-profile.addEventListener('mouseenter', () => {
-  profile.style.transform = 'translateY(-2px) scale(1.02)'
-})
-profile.addEventListener('mouseleave', () => {
-  profile.style.transform = 'translateY(0) scale(1)'
-})
-
-header.append(name, profile)
-
-if (!existingMap) {
-  app.appendChild(header)
-  app.appendChild(mapElement)
-  document.body.appendChild(app)
-} else {
-  const wrapper = document.createElement('div')
-  wrapper.style.display = 'flex'
-  wrapper.style.flexDirection = 'column'
-  wrapper.style.width = '100%'
-  wrapper.style.height = '100vh'
-  wrapper.appendChild(header)
-  wrapper.appendChild(mapElement)
-  document.body.appendChild(wrapper)
-}
+mapElement.style.height = '100vh'
 
 const map = new maplibregl.Map({
   container: mapElement,
@@ -106,60 +33,17 @@ map.on('error', (event) => {
   }
 })
 
-const emptyFeatureCollection = { type: 'FeatureCollection', features: [] }
+let puskesmas = { type: 'FeatureCollection', features: [] }
+let flood = { type: 'FeatureCollection', features: [] }
+let clickHandlersAttached = false
+let hasFitBounds = false
 
-const isValidPosition = (position) => (
-  Array.isArray(position) &&
-  position.length >= 2 &&
-  Number.isFinite(Number(position[0])) &&
-  Number.isFinite(Number(position[1]))
-)
-
-const collectPositions = (coordinates, positions = []) => {
-  if (!Array.isArray(coordinates)) return positions
-
-  if (isValidPosition(coordinates)) {
-    positions.push([Number(coordinates[0]), Number(coordinates[1])])
-    return positions
-  }
-
-  coordinates.forEach((coordinate) => collectPositions(coordinate, positions))
-  return positions
+const loadData = async () => {
+  const data = await fetchMapData()
+  puskesmas = data.puskesmas
+  flood = data.flood
+  addGeoJsonLayers()
 }
-
-const getFeaturePositions = (feature) => collectPositions(feature?.geometry?.coordinates)
-
-const normalizeFeatureCollection = (data) => ({
-  ...data,
-  features: data.features.filter((feature) => getFeaturePositions(feature).length > 0)
-})
-
-const loadGeoJson = async (path, label) => {
-  const response = await fetch(`${API_BASE}/api/routes/${path}`)
-  if (!response.ok) {
-    throw new Error(`Gagal mengambil data ${label}: ${response.status}`)
-  }
-  const data = await response.json()
-  if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
-    throw new Error(`Format data ${label} bukan GeoJSON FeatureCollection`)
-  }
-  return normalizeFeatureCollection(data)
-}
-
-const [puskesmasResult, floodResult] = await Promise.allSettled([
-  loadGeoJson('puskesmas', 'puskesmas'),
-  loadGeoJson('flood', 'flood')
-])
-
-const puskesmas = puskesmasResult.status === 'fulfilled'
-  ? puskesmasResult.value
-  : emptyFeatureCollection
-const flood = floodResult.status === 'fulfilled'
-  ? floodResult.value
-  : emptyFeatureCollection
-
-if (puskesmasResult.status === 'rejected') console.error(puskesmasResult.reason)
-if (floodResult.status === 'rejected') console.error(floodResult.reason)
 
 map.addControl(new maplibregl.NavigationControl())
 map.addControl(new maplibregl.FullscreenControl())
@@ -231,98 +115,123 @@ const addLayerSwitcher = () => {
 
 addLayerSwitcher()
 
-map.on('style.load', () => {
-    console.log('Berhasil')
-    map.resize()
 
-    if (map.getSource('puskesmasRoute')) {
-      return
+const addPuskesmasSource = () => {
+  const source = map.getSource('puskesmasRoute')
+
+  if (source) {
+    source.setData(puskesmas)
+    return
+  }
+
+  map.addSource('puskesmasRoute', {
+    type: 'geojson',
+    data: puskesmas
+  })
+}
+
+const addPuskesmasLayer = () => {
+  if (map.getLayer('puskesmas')) return
+
+  map.addLayer({
+    id: 'puskesmas',
+    type: 'circle',
+    source: 'puskesmasRoute',
+    paint: {
+      'circle-color': '#0080ff',
+      'circle-radius': 7,
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 2
     }
-    
-    // Puskesmas
-    map.addSource('puskesmasRoute', {
-        type:'geojson',
-      data: puskesmas
-    })
-    
-    map.addLayer({
-        id: 'puskesmas',
-      type: 'circle',
-        source: 'puskesmasRoute',
-        paint: {
-        'circle-color': '#0080ff',
-        'circle-radius': 7,
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 2
-        }
-    })
+  })
+}
 
-    map.on('click', 'puskesmas', (event) => {
-      const feature = event.features?.[0]
-      if (!feature) return
-      new maplibregl.Popup()
-        .setLngLat(event.lngLat)
-        .setHTML(`<strong>${feature.properties?.nama || 'Puskesmas'}</strong>`)
-        .addTo(map)
-    })
+const addFloodSource = () => {
+  const source = map.getSource('floodRoute')
 
-    // Flood 
+  if (source) {
+    source.setData(flood)
+    return
+  }
 
-    map.addSource('floodRoute', {
-        type:'geojson',
-      data: flood
-    })
-    
-    map.addLayer({
-        id: 'flood',
+  map.addSource('floodRoute', {
+    type: 'geojson',
+    data: flood
+  })
+}
+
+const addFloodLayer = () => {
+  if (map.getLayer('flood')) return
+
+  map.addLayer(
+    {
+      id: 'flood',
       type: 'fill',
-        source: 'floodRoute',
-        paint: {
+      source: 'floodRoute',
+      paint: {
         'fill-color': [
           'match',
           ['get', 'kelas_risi'],
-          'RENDAH', '#2ca25f',
-          'rendah', '#2ca25f',
-          'Rendah', '#2ca25f',
-          'SEDANG', '#fec44f',
-          'sedang', '#fec44f',
-          'Sedang', '#fec44f',
-          'TINGGI', '#de2d26',
-          'tinggi', '#de2d26',
-          'Tinggi', '#de2d26',
+
+          'RENDAH',
+          '#2ca25f',
+
+          'SEDANG',
+          '#fec44f',
+
+          'TINGGI',
+          '#de2d26',
+
           '#9ca3af'
         ],
+
         'fill-opacity': 0.35,
         'fill-outline-color': '#374151'
-        }
-    })
-
-    map.on('click', 'flood', (event) => {
-      const feature = event.features?.[0]
-      if (!feature) return
-      new maplibregl.Popup()
-        .setLngLat(event.lngLat)
-        .setHTML(`<strong>Risiko banjir: ${feature.properties?.kelas_risi || 'Tidak diketahui'}</strong>`)
-        .addTo(map)
-    })
-
-      if (puskesmas.features.length > 0 || flood.features.length > 0) {
-        const bounds = new maplibregl.LngLatBounds()
-        const allFeatures = [...puskesmas.features, ...flood.features]
-        allFeatures.forEach((feature) => {
-          getFeaturePositions(feature).forEach((position) => bounds.extend(position))
-        })
-
-        if (!bounds.isEmpty()) {
-          map.fitBounds(bounds, { padding: 60, maxZoom: 13 })
-        }
       }
+    },
+    'puskesmas'
+  )
+}
 
-    
-})
+const attachClickHandlers = () => {
+  if (clickHandlersAttached) return
+
+  map.on('click', 'puskesmas', (event) => addPuskesmasPopup(map, event))
+  map.on('click', 'flood', (event) => addFloodPopup(map, event))
+  map.on('mouseenter', 'puskesmas', () => {
+    map.getCanvas().style.cursor = 'pointer'
+  })
+  map.on('mouseleave', 'puskesmas', () => {
+    map.getCanvas().style.cursor = ''
+  })
+  map.on('mouseenter', 'flood', () => {
+    map.getCanvas().style.cursor = 'pointer'
+  })
+  map.on('mouseleave', 'flood', () => {
+    map.getCanvas().style.cursor = ''
+  })
+
+  clickHandlersAttached = true
+}
+
+const addGeoJsonLayers = () => {
+  if (!map.isStyleLoaded() || !puskesmas || !flood) return
+
+  map.resize()
+
+  addPuskesmasSource()
+  addPuskesmasLayer()
+
+  addFloodSource()
+  addFloodLayer()
+
+  attachClickHandlers()
+
+  fitToMapData()
+}
+
+map.on('load', loadData)
 
 window.addEventListener('load', () => {
     map.resize()
 })
-
-
