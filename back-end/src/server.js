@@ -14,13 +14,14 @@ const app = express()
 app.use(cors())
 
 
-app.use('/api/routes', puskesmasRoute)
+app.use('/api/routes', puskesmasRoute) 
 app.use('/api/routes', floodRoute)
 app.use('/api/routes', bufferRoute)
 app.use('/api/routes', hospitalsRoute)
 
-const PORT = process.env.PORT || 5173
+const PORT = process.env.PORT || 5000
 
 app.listen(PORT, ()=>{
     console.log(`Server is running! oh http://localhost:${PORT}`)
+    
 })

@@ -4,7 +4,6 @@ import { Map, Marker, Popup } from 'maplibre-gl';
 import { areaGeometry } from '../engine/areaTool';
 import { bufferGeometry } from '../engine/bufferTool';  
 import { addPopup } from '../../popUps/basicpopups';
-import { addAttribution } from '../../controls/controlsBasic';  
 import { API_BASE, DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
 
 const existingMap = document.getElementById('map')
@@ -17,6 +16,8 @@ if (!mapElement) {
   mapElement.style.height = '100vh'
   document.body.appendChild(mapElement)
 }
+
+mapElement.style.position = 'relative'
 
 document.body.style.margin = '0'
 document.body.style.padding = '0'
@@ -107,12 +108,42 @@ map.on('error', (event) => {
 
 const emptyFeatureCollection = { type: 'FeatureCollection', features: [] }
 
+const isValidPosition = (position) => (
+  Array.isArray(position) &&
+  position.length >= 2 &&
+  Number.isFinite(Number(position[0])) &&
+  Number.isFinite(Number(position[1]))
+)
+
+const collectPositions = (coordinates, positions = []) => {
+  if (!Array.isArray(coordinates)) return positions
+
+  if (isValidPosition(coordinates)) {
+    positions.push([Number(coordinates[0]), Number(coordinates[1])])
+    return positions
+  }
+
+  coordinates.forEach((coordinate) => collectPositions(coordinate, positions))
+  return positions
+}
+
+const getFeaturePositions = (feature) => collectPositions(feature?.geometry?.coordinates)
+
+const normalizeFeatureCollection = (data) => ({
+  ...data,
+  features: data.features.filter((feature) => getFeaturePositions(feature).length > 0)
+})
+
 const loadGeoJson = async (path, label) => {
   const response = await fetch(`${API_BASE}/api/routes/${path}`)
   if (!response.ok) {
     throw new Error(`Gagal mengambil data ${label}: ${response.status}`)
   }
-  return response.json()
+  const data = await response.json()
+  if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+    throw new Error(`Format data ${label} bukan GeoJSON FeatureCollection`)
+  }
+  return normalizeFeatureCollection(data)
 }
 
 const [puskesmasResult, floodResult] = await Promise.allSettled([
@@ -133,9 +164,6 @@ if (floodResult.status === 'rejected') console.error(floodResult.reason)
 map.addControl(new maplibregl.NavigationControl())
 map.addControl(new maplibregl.FullscreenControl())
 map.addControl(new maplibregl.GlobeControl())
-
-// Tambahkan Attribution
-addAttribution(map, '')
 
 const addLayerSwitcher = () => {
   const panel = document.createElement('fieldset')
@@ -180,7 +208,9 @@ const addLayerSwitcher = () => {
     checkbox.type = 'checkbox'
     checkbox.checked = true
     checkbox.addEventListener('change', () => {
-      map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none')
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none')
+      }
     })
 
     const swatch = document.createElement('span')
@@ -199,9 +229,15 @@ const addLayerSwitcher = () => {
   mapElement.appendChild(panel)
 }
 
-map.on('load', () => {
+addLayerSwitcher()
+
+map.on('style.load', () => {
     console.log('Berhasil')
     map.resize()
+
+    if (map.getSource('puskesmasRoute')) {
+      return
+    }
     
     // Puskesmas
     map.addSource('puskesmasRoute', {
@@ -221,6 +257,15 @@ map.on('load', () => {
         }
     })
 
+    map.on('click', 'puskesmas', (event) => {
+      const feature = event.features?.[0]
+      if (!feature) return
+      new maplibregl.Popup()
+        .setLngLat(event.lngLat)
+        .setHTML(`<strong>${feature.properties?.nama || 'Puskesmas'}</strong>`)
+        .addTo(map)
+    })
+
     // Flood 
 
     map.addSource('floodRoute', {
@@ -237,8 +282,14 @@ map.on('load', () => {
           'match',
           ['get', 'kelas_risi'],
           'RENDAH', '#2ca25f',
+          'rendah', '#2ca25f',
+          'Rendah', '#2ca25f',
           'SEDANG', '#fec44f',
+          'sedang', '#fec44f',
+          'Sedang', '#fec44f',
           'TINGGI', '#de2d26',
+          'tinggi', '#de2d26',
+          'Tinggi', '#de2d26',
           '#9ca3af'
         ],
         'fill-opacity': 0.35,
@@ -246,14 +297,25 @@ map.on('load', () => {
         }
     })
 
-      addLayerSwitcher()
+    map.on('click', 'flood', (event) => {
+      const feature = event.features?.[0]
+      if (!feature) return
+      new maplibregl.Popup()
+        .setLngLat(event.lngLat)
+        .setHTML(`<strong>Risiko banjir: ${feature.properties?.kelas_risi || 'Tidak diketahui'}</strong>`)
+        .addTo(map)
+    })
 
-      if (puskesmas.features.length > 0) {
+      if (puskesmas.features.length > 0 || flood.features.length > 0) {
         const bounds = new maplibregl.LngLatBounds()
-        puskesmas.features.forEach((feature) => {
-          bounds.extend(feature.geometry.coordinates)
+        const allFeatures = [...puskesmas.features, ...flood.features]
+        allFeatures.forEach((feature) => {
+          getFeaturePositions(feature).forEach((position) => bounds.extend(position))
         })
-        map.fitBounds(bounds, { padding: 60, maxZoom: 13 })
+
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds, { padding: 60, maxZoom: 13 })
+        }
       }
 
     
@@ -262,6 +324,5 @@ map.on('load', () => {
 window.addEventListener('load', () => {
     map.resize()
 })
-
 
 
