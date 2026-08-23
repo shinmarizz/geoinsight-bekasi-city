@@ -36,13 +36,64 @@ export const loadMapData = async () => {
   }
 }
 
-const formatCoordinate = (value) => Number(value).toFixed(5)
+const formatCoordinate = (value) => {
+  const coordinate = Number(value)
+  return Number.isFinite(coordinate) ? coordinate.toFixed(5) : '-'
+}
+
 const escapeHtml = (value) => String(value ?? '')
   .replaceAll('&', '&amp;')
   .replaceAll('<', '&lt;')
   .replaceAll('>', '&gt;')
   .replaceAll('"', '&quot;')
   .replaceAll("'", '&#039;')
+
+const getFloodRiskMeta = (risk) => {
+  const normalizedRisk = String(risk || '').toUpperCase()
+
+  if (normalizedRisk === 'TINGGI') {
+    return { label: 'Risiko Tinggi', className: 'risk-high' }
+  }
+
+  if (normalizedRisk === 'SEDANG') {
+    return { label: 'Risiko Sedang', className: 'risk-medium' }
+  }
+
+  if (normalizedRisk === 'RENDAH') {
+    return { label: 'Risiko Rendah', className: 'risk-low' }
+  }
+
+  return { label: 'Risiko Tidak Diketahui', className: 'risk-unknown' }
+}
+
+const buildPopupTable = (rows) => rows.map(({ label, value }) => `
+  <tr>
+    <th scope="row">${escapeHtml(label)}</th>
+    <td>${escapeHtml(value || '-')}</td>
+  </tr>
+`).join('')
+
+const buildCoordinateChips = (longitude, latitude) => `
+  <div class="geo-popup-coordinates" aria-label="Koordinat lokasi">
+    <span>Lng ${formatCoordinate(longitude)}</span>
+    <span>Lat ${formatCoordinate(latitude)}</span>
+  </div>
+`
+
+const buildMapsLink = (latitude, longitude, label = 'Lihat Maps') => {
+  const latValue = Number(latitude)
+  const lngValue = Number(longitude)
+
+  if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) return ''
+
+  const url = `https://www.google.com/maps?q=${latValue},${lngValue}`
+
+  return `
+    <a class="geo-popup-action" href="${url}" target="_blank" rel="noopener noreferrer">
+      ${escapeHtml(label)}
+    </a>
+  `
+}
 
 export function addPuskesmasPopup(map, event) {
   const feature = event.features?.[0]
@@ -56,13 +107,26 @@ export function addPuskesmasPopup(map, event) {
   new Popup()
     .setLngLat(event.lngLat)
     .setHTML(`
-      <div>
-        <strong>${escapeHtml(properties.nama || 'Puskesmas')}</strong>
-        <div>Alamat: ${escapeHtml(properties.alamat || '-')}</div>
-        <div>Kecamatan: ${escapeHtml(properties.kecamatan || '-')}</div>
-        <div>Desa: ${escapeHtml(properties.desa || '-')}</div>
-        <div>Bujur: ${formatCoordinate(longitude)}</div>
-        <div>Lintang: ${formatCoordinate(latitude)}</div>
+      <div class="geo-popup geo-popup-health">
+        <div class="geo-popup-header">
+          <span class="geo-popup-kicker">Fasilitas Kesehatan</span>
+          <strong>${escapeHtml(properties.nama || 'Puskesmas')}</strong>
+        </div>
+
+        <table class="geo-popup-table">
+          <tbody>
+            ${buildPopupTable([
+              { label: 'Alamat', value: properties.alamat },
+              { label: 'Kecamatan', value: properties.kecamatan },
+              { label: 'Desa', value: properties.desa }
+            ])}
+          </tbody>
+        </table>
+
+        <div class="geo-popup-footer">
+          ${buildCoordinateChips(longitude, latitude)}
+          ${buildMapsLink(latitude, longitude)}
+        </div>
       </div>
     `)
     .addTo(map)
@@ -73,14 +137,33 @@ export function addFloodPopup(map, event) {
   if (!feature) return
 
   const properties = feature.properties || {}
+  const { lng, lat } = event.lngLat
+  const risk = getFloodRiskMeta(properties.kelas_risi)
 
   new Popup()
     .setLngLat(event.lngLat)
     .setHTML(`
-      <div>
-        <strong>Risiko banjir: ${escapeHtml(properties.kelas_risi || 'Tidak diketahui')}</strong>
-        <div>Kecamatan: ${escapeHtml(properties.kecamatan || '-')}</div>
-        <div>Desa: ${escapeHtml(properties.desa || '-')}</div>
+      <div class="geo-popup geo-popup-flood">
+        <div class="geo-popup-header">
+          <span class="geo-popup-kicker">Wilayah Banjir</span>
+          <strong>Informasi Risiko</strong>
+          <span class="geo-popup-badge ${risk.className}">${escapeHtml(risk.label)}</span>
+        </div>
+
+        <table class="geo-popup-table">
+          <tbody>
+            ${buildPopupTable([
+              { label: 'Kelas Risiko', value: properties.kelas_risi || 'Tidak diketahui' },
+              { label: 'Kecamatan', value: properties.kecamatan },
+              { label: 'Desa', value: properties.desa }
+            ])}
+          </tbody>
+        </table>
+
+        <div class="geo-popup-footer">
+          ${buildCoordinateChips(lng, lat)}
+          ${buildMapsLink(lat, lng)}
+        </div>
       </div>
     `)
     .addTo(map)

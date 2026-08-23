@@ -3,7 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import '../style.css'
 import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
 import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config'
-import "@maptiler/sdk/dist/maptiler-sdk.css"
+import { PUSKESMAS_HEATMAP_LAYER_ID, addPuskesmasHeatmapLayer } from './heatmap'
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -33,7 +33,6 @@ const brand = document.createElement('a')
 brand.className = "flex items-center gap-3"
 
 const logo = document.createElement("div")
-\
 
 const titleContainer = document.createElement("div")
 const title = document.createElement("h1")
@@ -84,6 +83,12 @@ let flood = { type: 'FeatureCollection', features: [] }
 let clickHandlersAttached = false
 let hasFitBounds = false
 
+const layerVisibility = {
+  puskesmas: true,
+  flood: true,
+  [PUSKESMAS_HEATMAP_LAYER_ID]: false
+}
+
 const loadData = async () => {
   const data = await fetchMapData()
   puskesmas = data.puskesmas
@@ -123,6 +128,7 @@ const addLayerSwitcher = () => {
 
   const layers = [
     { id: 'puskesmas', label: 'Puskesmas', color: '#0080ff' },
+    { id: PUSKESMAS_HEATMAP_LAYER_ID, label: 'Heatmap Puskesmas', color: 'linear-gradient(90deg, #38bdf8, #2563eb, #dc2626)' },
     { id: 'flood', label: 'Wilayah banjir', color: '#de2d26' }
   ]
 
@@ -136,8 +142,10 @@ const addLayerSwitcher = () => {
 
     const checkbox = document.createElement('input')
     checkbox.type = 'checkbox'
-    checkbox.checked = true
+    checkbox.checked = layerVisibility[id] ?? true
     checkbox.addEventListener('change', () => {
+      layerVisibility[id] = checkbox.checked
+
       if (map.getLayer(id)) {
         map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none')
       }
@@ -177,12 +185,18 @@ const addPuskesmasSource = () => {
 }
 
 const addPuskesmasLayer = () => {
-  if (map.getLayer('puskesmas')) return
+  if (map.getLayer('puskesmas')) {
+    map.setLayoutProperty('puskesmas', 'visibility', layerVisibility.puskesmas ? 'visible' : 'none')
+    return
+  }
 
   map.addLayer({
     id: 'puskesmas',
     type: 'circle',
     source: 'puskesmasRoute',
+    layout: {
+      visibility: layerVisibility.puskesmas ? 'visible' : 'none'
+    },
     paint: {
       'circle-color': '#0080ff',
       'circle-radius': 7,
@@ -207,13 +221,19 @@ const addFloodSource = () => {
 }
 
 const addFloodLayer = () => {
-  if (map.getLayer('flood')) return
+  if (map.getLayer('flood')) {
+    map.setLayoutProperty('flood', 'visibility', layerVisibility.flood ? 'visible' : 'none')
+    return
+  }
 
   map.addLayer(
     {
       id: 'flood',
       type: 'fill',
       source: 'floodRoute',
+      layout: {
+        visibility: layerVisibility.flood ? 'visible' : 'none'
+      },
       paint: {
         'fill-color': [
           'match',
@@ -314,6 +334,11 @@ const addGeoJsonLayers = () => {
 
   addFloodSource()
   addFloodLayer()
+
+  addPuskesmasHeatmapLayer(map, {
+    beforeLayerId: 'puskesmas',
+    visible: layerVisibility[PUSKESMAS_HEATMAP_LAYER_ID]
+  })
 
   attachClickHandlers()
 
