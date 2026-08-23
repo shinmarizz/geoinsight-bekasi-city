@@ -1,8 +1,8 @@
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'
+import '../style.css'
 import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
 import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
-import { createElement } from 'react';
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -17,24 +17,43 @@ document.body.style.margin = '0'
 document.body.style.padding = '0'
 mapElement.style.height = '100vh'
 
+// Header
 const header = document.createElement('header')
-header.className = "header-webgis"
+header.className = "absolute top-0 left-0 z-50 w-full h-14 flex items-center justify-between px-6 bg-white shadow-md"
 
-const logo = createElement("div")
-logo.className =  "logo-webgis"
-logo.innerText = "Geoinsight"
 
-const nav = createElement("nav")
-nav.className = "webgis-nav"
+const brand = document.createElement('a')
+brand.className = "flex items-center gap-3"
 
-const landingpage = createElement("a")
-landingpage.className = "landingpage-webgis"
+const logo = document.createElement("div")
 
-nav.append(landingpage)
+const titleContainer = document.createElement("div")
+const title = document.createElement("h1")
 
-header.append(logo, nav)
+title.className = "text-lg font-bold text-gray-400"
+title.textContent = "GeoInsight"
 
-document.body.append(header)
+titleContainer.append(title)
+
+brand.append(logo, titleContainer)
+
+const nav = document.createElement("nav")
+nav.className = "flex items-center gap-6"
+
+const menuItems = [
+  { label: "Layer", href: "../../index.html" }
+]
+
+menuItems.forEach(({ label, href }) => {
+  const link = document.createElement("a")
+  link.href = href
+  link.textContent = label
+  link.className = "text-sm font-medium text-gray-500 transition hover:text-blue-500"
+  nav.appendChild(link)
+})
+
+header.append(brand, nav)
+document.body.prepend(header)
 
 
 
@@ -67,16 +86,16 @@ const loadData = async () => {
   addGeoJsonLayers()
 }
 
-map.addControl(new maplibregl.NavigationControl())
-map.addControl(new maplibregl.FullscreenControl())
-map.addControl(new maplibregl.GlobeControl())
+map.addControl( new maplibregl.NavigationControl(), "top-right")
+map.addControl(new maplibregl.FullscreenControl(), "top-right")
+map.addControl(new maplibregl.GlobeControl(), "top-right")
 
 const addLayerSwitcher = () => {
   const panel = document.createElement('fieldset')
   panel.setAttribute('aria-label', 'Daftar layer peta')
   Object.assign(panel.style, {
     position: 'absolute',
-    top: '20px',
+    top: '72px',
     left: '20px',
     zIndex: '2',
     margin: '0',
@@ -234,6 +253,50 @@ const attachClickHandlers = () => {
   })
 
   clickHandlersAttached = true
+}
+
+const getFeatureCoordinates = (geometry) => {
+  if (!geometry?.coordinates) return []
+
+  const coordinates = []
+  const collectCoordinates = (value) => {
+    if (!Array.isArray(value)) return
+
+    if (typeof value[0] === 'number' && typeof value[1] === 'number') {
+      coordinates.push(value)
+      return
+    }
+
+    value.forEach(collectCoordinates)
+  }
+
+  collectCoordinates(geometry.coordinates)
+  return coordinates
+}
+
+const fitToMapData = () => {
+  if (hasFitBounds) return
+
+  const bounds = new maplibregl.LngLatBounds()
+  const features = [
+    ...(puskesmas.features || []),
+    ...(flood.features || [])
+  ]
+
+  features.forEach((feature) => {
+    getFeatureCoordinates(feature.geometry).forEach((coordinate) => {
+      bounds.extend(coordinate)
+    })
+  })
+
+  if (bounds.isEmpty()) return
+
+  map.fitBounds(bounds, {
+    padding: 80,
+    maxZoom: 13,
+    duration: 900
+  })
+  hasFitBounds = true
 }
 
 const addGeoJsonLayers = () => {

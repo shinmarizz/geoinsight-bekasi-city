@@ -64,3 +64,9 @@ section {
   position: relative;
   z-index: 1;
 }
+
+/* Kontrol MapLibre berada di dalam peta, jadi beri ruang untuk navbar 56px. */
+.maplibregl-ctrl-top-right {
+  top: 72px;
+  right: 20px;
+}
