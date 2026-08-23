@@ -2,6 +2,7 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
 import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
+import { createElement } from 'react';
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -15,6 +16,27 @@ if (!mapElement) {
 document.body.style.margin = '0'
 document.body.style.padding = '0'
 mapElement.style.height = '100vh'
+
+const header = document.createElement('header')
+header.className = "header-webgis"
+
+const logo = createElement("div")
+logo.className =  "logo-webgis"
+logo.innerText = "Geoinsight"
+
+const nav = createElement("nav")
+nav.className = "webgis-nav"
+
+const landingpage = createElement("a")
+landingpage.className = "landingpage-webgis"
+
+nav.append(landingpage)
+
+header.append(logo, nav)
+
+document.body.append(header)
+
+
 
 const map = new maplibregl.Map({
   container: mapElement,
