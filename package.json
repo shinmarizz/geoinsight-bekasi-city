@@ -1,5 +1,5 @@
 {
-  "name"  : "front-end",
+  "name": "front-end",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,10 @@
     "vite": "^8.1.1"
   },
   "dependencies": {
+    "@maptiler/leaflet-maptilersdk": "^4.1.1",
+    "@maptiler/sdk": "^4.1.0",
     "@terraformer/wkt": "^2.2.2",
+    "leaflet": "^1.9.4",
     "maplibre-gl": "^5.24.0"
   }
 }

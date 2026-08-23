@@ -2,7 +2,8 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '../style.css'
 import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
-import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config';
+import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config'
+import "@maptiler/sdk/dist/maptiler-sdk.css"
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -15,7 +16,13 @@ if (!mapElement) {
 
 document.body.style.margin = '0'
 document.body.style.padding = '0'
-mapElement.style.height = '100vh'
+Object.assign(mapElement.style, {
+  position: 'fixed',
+  inset: '0',
+  width: '100vw',
+  height: '100vh',
+  zIndex: '0'
+})
 
 // Header
 const header = document.createElement('header')
@@ -26,6 +33,7 @@ const brand = document.createElement('a')
 brand.className = "flex items-center gap-3"
 
 const logo = document.createElement("div")
+\
 
 const titleContainer = document.createElement("div")
 const title = document.createElement("h1")
@@ -55,14 +63,11 @@ menuItems.forEach(({ label, href }) => {
 header.append(brand, nav)
 document.body.prepend(header)
 
-
-
 const map = new maplibregl.Map({
   container: mapElement,
   style: GEOMAPID_STYLE,
   center: [107.0, -6.2],
   zoom: 10,
-  maplibreLogo: true,
 })
 
 let usingFallbackStyle = false
@@ -316,6 +321,7 @@ const addGeoJsonLayers = () => {
 }
 
 map.on('load', loadData)
+map.on('style.load', addGeoJsonLayers)
 
 window.addEventListener('load', () => {
     map.resize()
