@@ -6,6 +6,7 @@ import puskesmasRoute from "../routes/puskesmas.js"
 import floodRoute from "../routes/flood.js"
 import bufferRoute from "../routes/buffer.js"
 import hospitalsRoute from "../routes/hospitals.js"
+import spatialAnalysisRoute from "../routes/spatialAnalysis.js"
 
 configDotenv()
 
@@ -18,6 +19,7 @@ app.use('/api/routes', puskesmasRoute)
 app.use('/api/routes', floodRoute)
 app.use('/api/routes', bufferRoute)
 app.use('/api/routes', hospitalsRoute)
+app.use('/api/routes', spatialAnalysisRoute)
 
 const PORT = process.env.PORT || 5000
 

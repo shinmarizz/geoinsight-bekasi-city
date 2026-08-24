@@ -1,89 +1,36 @@
 export const PUSKESMAS_HEATMAP_LAYER_ID = 'puskesmas-heatmap'
 
-const PUSKESMAS_SOURCE_ID = 'puskesmasRoute'
-
-export const addPuskesmasHeatmapLayer = (map, options = {}) => {
-  const {
-    beforeLayerId = 'puskesmas',
-    visible = false
-  } = options
+export const addPuskesmasHeatmapLayer = (map, { beforeLayerId, visible = false } = {}) => {
+  if (!map.getSource('puskesmasHeatmap')) {
+    map.addSource('puskesmasHeatmap', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] }
+    })
+  }
 
   if (map.getLayer(PUSKESMAS_HEATMAP_LAYER_ID)) {
-    map.setLayoutProperty(
-      PUSKESMAS_HEATMAP_LAYER_ID,
-      'visibility',
-      visible ? 'visible' : 'none'
-    )
+    map.setLayoutProperty(PUSKESMAS_HEATMAP_LAYER_ID, 'visibility', visible ? 'visible' : 'none')
     return
   }
 
-  if (!map.getSource(PUSKESMAS_SOURCE_ID)) return
-
-  const insertBeforeLayer = map.getLayer(beforeLayerId) ? beforeLayerId : undefined
-
-  map.addLayer(
-    {
-      id: PUSKESMAS_HEATMAP_LAYER_ID,
-      type: 'heatmap',
-      source: PUSKESMAS_SOURCE_ID,
-      layout: {
-        visibility: visible ? 'visible' : 'none'
-      },
-      maxzoom: 15,
-      paint: {
-        'heatmap-weight': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          9,
-          0.7,
-          14,
-          1
-        ],
-        'heatmap-intensity': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          9,
-          0.8,
-          14,
-          1.6
-        ],
-        'heatmap-color': [
-          'interpolate',
-          ['linear'],
-          ['heatmap-density'],
-          0,
-          'rgba(14, 165, 233, 0)',
-          0.25,
-          '#bae6fd',
-          0.5,
-          '#38bdf8',
-          0.75,
-          '#2563eb',
-          1,
-          '#dc2626'
-        ],
-        'heatmap-radius': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          9,
-          18,
-          14,
-          34
-        ],
-        'heatmap-opacity': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          12,
-          0.85,
-          15,
-          0.35
-        ]
-      }
-    },
-    insertBeforeLayer
-  )
+  map.addLayer({
+    id: PUSKESMAS_HEATMAP_LAYER_ID,
+    type: 'heatmap',
+    source: 'puskesmasHeatmap',
+    layout: { visibility: visible ? 'visible' : 'none' },
+    paint: {
+      'heatmap-weight': ['coalesce', ['get', 'intensity'], 0.2],
+      'heatmap-intensity': 1.2,
+      'heatmap-radius': 30,
+      'heatmap-opacity': 0.82,
+      'heatmap-color': [
+        'interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(33,102,172,0)',
+        0.2, '#67a9cf',
+        0.45, '#fdae61',
+        0.7, '#f46d43',
+        1, '#d73027'
+      ]
+    }
+  }, beforeLayerId)
 }

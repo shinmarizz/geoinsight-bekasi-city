@@ -2,8 +2,9 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '../style.css'
 import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
-import { DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config'
+import { API_BASE, DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config'
 import { PUSKESMAS_HEATMAP_LAYER_ID, addPuskesmasHeatmapLayer } from './heatmap'
+import { loadIsochrone } from '../engine/isochroneTool'
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -80,8 +81,10 @@ map.on('error', (event) => {
 
 let puskesmas = { type: 'FeatureCollection', features: [] }
 let flood = { type: 'FeatureCollection', features: [] }
+let puskesmasHeatmap = { type: 'FeatureCollection', features: [] }
 let clickHandlersAttached = false
 let hasFitBounds = false
+let isochroneMode = false
 
 const layerVisibility = {
   puskesmas: true,
@@ -93,6 +96,15 @@ const loadData = async () => {
   const data = await fetchMapData()
   puskesmas = data.puskesmas
   flood = data.flood
+
+  try {
+    const heatmapResponse = await fetch(`${API_BASE}/api/routes/heatmap/puskesmas?radius=750`)
+    if (!heatmapResponse.ok) throw new Error(`Heatmap gagal dimuat: ${heatmapResponse.status}`)
+    puskesmasHeatmap = await heatmapResponse.json()
+  } catch (error) {
+    console.error(error)
+  }
+
   addGeoJsonLayers()
 }
 
@@ -163,6 +175,22 @@ const addLayerSwitcher = () => {
     row.append(checkbox, swatch, document.createTextNode(label))
     panel.appendChild(row)
   })
+
+  const isochroneButton = document.createElement('button')
+  isochroneButton.type = 'button'
+  isochroneButton.textContent = 'Pilih titik isochrone 15 menit'
+  Object.assign(isochroneButton.style, {
+    marginTop: '16px', padding: '8px 10px', width: '100%', cursor: 'pointer',
+    border: '1px solid #c2410c', borderRadius: '6px', background: '#fff7ed', color: '#9a3412'
+  })
+  isochroneButton.addEventListener('click', () => {
+    isochroneMode = !isochroneMode
+    isochroneButton.textContent = isochroneMode
+      ? 'Klik peta untuk membuat isochrone'
+      : 'Pilih titik isochrone 15 menit'
+    map.getCanvas().style.cursor = isochroneMode ? 'crosshair' : ''
+  })
+  panel.appendChild(isochroneButton)
 
   mapElement.appendChild(panel)
 }
@@ -339,11 +367,27 @@ const addGeoJsonLayers = () => {
     beforeLayerId: 'puskesmas',
     visible: layerVisibility[PUSKESMAS_HEATMAP_LAYER_ID]
   })
+  map.getSource('puskesmasHeatmap')?.setData(puskesmasHeatmap)
 
   attachClickHandlers()
 
   fitToMapData()
 }
+
+map.on('click', async (event) => {
+  if (!isochroneMode) return
+
+  try {
+    await loadIsochrone(map, {
+      longitude: event.lngLat.lng,
+      latitude: event.lngLat.lat
+    })
+    isochroneMode = false
+    map.getCanvas().style.cursor = ''
+  } catch (error) {
+    console.error(error)
+  }
+})
 
 map.on('load', loadData)
 map.on('style.load', addGeoJsonLayers)
