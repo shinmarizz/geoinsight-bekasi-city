@@ -8,7 +8,9 @@
     "dev": "cd front-end && npm run dev",
     "build": "cd front-end && npm run build",
     "preview": "cd front-end && npm run preview",
-    "server": "cd back-end && npm run dev"
+    "server": "cd back-end && npm run dev",
+      "start": "cd back-end && npm start"
+
   },
   "dependencies": {
     "@terraformer/wkt": "^2.2.2",
