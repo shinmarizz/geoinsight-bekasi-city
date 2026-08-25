@@ -12,6 +12,7 @@
     "server": "cd back-end && npm run dev"
   },
   "dependencies": {
+    "@terraformer/wkt": "^2.2.2",
     "maplibre-gl": "^5.0.0",
     "tailwindcss": "^4.0.0"
   },
