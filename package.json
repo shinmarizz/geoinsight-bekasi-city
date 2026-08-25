@@ -12,6 +12,7 @@
     "server": "cd back-end && npm run dev"
   },
   "devDependencies": {
-    "vite": "^7.0.0"
+    "vite": "^7.0.0",
+    "@tailwindcss/vite": "^4.0.0"
   }
 }
