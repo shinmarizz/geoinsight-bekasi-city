@@ -1,19 +1,23 @@
 {
-  "name": "front-end",
-  "version": "0.0.0",
+  "name": "geoinsight-webgis",
+  "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "description": "Interactive Disaster WebGIS for Bekasi City",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "node index.js",
+    "main":"src/server.js",
+    "dev": "cd front-end && npm run dev",
+    "build": "cd front-end && npm run build",
+    "preview": "cd front-end && npm run preview",
+    "server": "cd back-end && npm run dev"
   },
   "dependencies": {
     "maplibre-gl": "^5.0.0",
     "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.0.0",
-    "vite": "^7.0.0"
+    "vite": "^7.0.0",
+    "@tailwindcss/vite": "^4.0.0"
   }
 }
+
