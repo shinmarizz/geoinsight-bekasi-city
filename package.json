@@ -10,5 +10,8 @@
     "build": "cd front-end && npm run build",
     "preview": "cd front-end && npm run preview",
     "server": "cd back-end && npm run dev"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
   }
 }
