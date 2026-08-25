@@ -114,13 +114,13 @@
 <section id="information" class="relative py-24 md:py-28 bg-linear-to-b from-blue-50 to-cyan-50">
   <div class="mx-auto max-w-1120px px-4">
     <div class="mx-auto mb-10 max-w-3xl text-center">
-      <p class="text-xs font-extrabold uppercase tracking-[0.25em] text-blue-500">Jenis Bencana</p>
+      <p class="text-xs font-extrabold uppercase tracking-[0.25em] text-blue-500">Data Peta</p>
       <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-800 md:text-4xl">
-        Informasi Kebencanaan yang Perlu Dipahami
+        Layer Informasi yang Tersedia
       </h2>
     </div>
 
-    <div class="grid gap-6 md:grid-cols-2">
+    <div class="grid gap-6 md:grid-cols-3">
       <article class="group overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_20px_45px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(6,182,212,0.15)]">
         <div class="overflow-hidden">
           <img
@@ -130,11 +130,11 @@
           />
         </div>
         <div class="p-6 md:p-7">
-          <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600">Banjir</span>
-          <h3 class="mt-4 text-2xl font-bold text-slate-800">Banjir</h3>
+          <span class="inline-flex rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">Banjir</span>
+          <h3 class="mt-4 text-2xl font-bold text-slate-800">Wilayah Banjir</h3>
           <p class="mt-3 text-base leading-relaxed text-slate-600">
-            Banjir merupakan salah satu bencana yang berulang di Kota Bekasi, terutama saat curah hujan tinggi
-            yang menyebabkan peningkatan debit air dan genangan pada wilayah dengan kapasitas drainase terbatas.
+            Peta zone banjir Kota Bekasi yang menunjukkan area terdampak berdasarkan data historis.
+            Pengguna dapat melihat sebaran wilayah rawan banjir dan mengaktifkan/menonaktifkan layer ini.
           </p>
         </div>
       </article>
@@ -143,16 +143,34 @@
         <div class="overflow-hidden">
           <img
             class="h-72 w-full object-cover transition duration-300 group-hover:scale-105"
-            src="https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80"
-            alt="Area rawan longsor"
+            src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80"
+            alt="Fasilitas kesehatan puskesmas"
           />
         </div>
         <div class="p-6 md:p-7">
-          <span class="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-700">Longsor</span>
-          <h3 class="mt-4 text-2xl font-bold text-slate-800">Tanah Longsor</h3>
+          <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600">Kesehatan</span>
+          <h3 class="mt-4 text-2xl font-bold text-slate-800">Puskesmas</h3>
           <p class="mt-3 text-base leading-relaxed text-slate-600">
-            Tanah longsor di Kota Bekasi relatif lebih lokal dibandingkan banjir, tetapi tetap perlu diperhatikan
-            pada lokasi tertentu dengan kemiringan lahan tinggi dan kondisi tanah yang rentan terhadap erosi.
+            Lokasi seluruh Puskesmas di Kota Bekasi beserta heatmap interaktif yang menunjukkan
+            konsentrasi dan sebaran fasilitas kesehatan di wilayah kota.
+          </p>
+        </div>
+      </article>
+
+      <article class="group overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_20px_45px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(6,182,212,0.15)]">
+        <div class="overflow-hidden">
+          <img
+            class="h-72 w-full object-cover transition duration-300 group-hover:scale-105"
+            src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=900&q=80"
+            alt="Jaringan jalan kota"
+          />
+        </div>
+        <div class="p-6 md:p-7">
+          <span class="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-700">Jaringan Jalan</span>
+          <h3 class="mt-4 text-2xl font-bold text-slate-800">Jaringan Jalan</h3>
+          <p class="mt-3 text-base leading-relaxed text-slate-600">
+            Jaringan jalan Kota Bekasi terdiri dari jalan lokal/setapak dan arteri/kolektor/tol.
+            Data jalan digunakan sebagai dasar analisis isochrone dan rute terpendek.
           </p>
         </div>
       </article>
@@ -170,60 +188,58 @@
     <div class="space-y-5">
       <article class="flex items-start gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(37,99,235,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-6">
         <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-inner md:h-28 md:w-28">
-          <svg viewBox="0 0 120 120" class="h-16 w-16 text-blue-600" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi buffer area bencana">
-            <circle cx="58" cy="60" r="30" stroke="currentColor" stroke-width="4" opacity="0.9"/>
-            <circle cx="58" cy="60" r="18" stroke="currentColor" stroke-width="3" opacity="0.7"/>
-            <path d="M58 60L86 35" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-            <circle cx="86" cy="35" r="6" fill="currentColor"/>
-            <circle cx="58" cy="60" r="5" fill="currentColor"/>
-            <path d="M20 82C34 74 44 72 58 74C73 76 84 81 100 88" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+          <svg viewBox="0 0 120 120" class="h-16 w-16 text-blue-600" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi isochrone area jangkauan">
+            <circle cx="30" cy="80" r="8" fill="currentColor" opacity="0.9"/>
+            <path d="M30 80C30 80 18 60 30 48C42 36 58 40 64 52C70 64 86 58 94 48" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <ellipse cx="60" cy="62" rx="38" ry="24" stroke="currentColor" stroke-width="2" stroke-dasharray="6 3" opacity="0.4"/>
+            <ellipse cx="60" cy="62" rx="22" ry="14" stroke="currentColor" stroke-width="2" stroke-dasharray="6 3" opacity="0.6"/>
           </svg>
         </div>
         <div class="flex-1">
-          <h3 class="text-2xl font-bold text-slate-800">Buffer</h3>
+          <h3 class="text-2xl font-bold text-slate-800">Isochrone</h3>
           <p class="mt-2 text-base leading-relaxed text-slate-600">
-            Membuat radius 500 m, 1 km, atau 2 km dari titik kejadian banjir untuk mengetahui permukiman,
-            fasilitas kesehatan, atau infrastruktur yang berada di sekitar lokasi.
+            Menghitung area jangkauan berdasarkan waktu tempuh (5, 10, 15, 20, atau 30 menit) dari titik asal
+            menggunakan jaringan jalan Bekasi. Mendukung tiga moda perjalanan: jalan kaki, sepeda motor, dan mobil.
           </p>
         </div>
       </article>
 
       <article class="flex items-start gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(37,99,235,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-6">
         <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-sky-50 shadow-inner md:h-28 md:w-28">
-          <svg viewBox="0 0 120 120" class="h-16 w-16 text-cyan-700" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi heatmap banjir">
-            <path d="M16 90C24 64 38 58 52 67C60 72 69 72 76 62C87 46 99 44 104 51V90H16Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
-            <circle cx="42" cy="48" r="10" fill="currentColor" opacity="0.3"/>
-            <circle cx="59" cy="42" r="14" fill="currentColor" opacity="0.25"/>
-            <circle cx="70" cy="68" r="16" fill="currentColor" opacity="0.18"/>
-            <circle cx="90" cy="54" r="12" fill="currentColor" opacity="0.2"/>
-            <path d="M24 34L36 42M52 28L58 38M78 30L82 40M92 24L96 34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+          <svg viewBox="0 0 120 120" class="h-16 w-16 text-cyan-700" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi rute terpendek">
+            <circle cx="20" cy="90" r="8" fill="currentColor" opacity="0.9"/>
+            <circle cx="100" cy="30" r="8" fill="currentColor" opacity="0.9"/>
+            <path d="M20 90C20 90 34 78 46 72C58 66 52 56 64 48C76 40 80 36 100 30" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 94L36 80M48 68L56 58M68 44L78 34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
           </svg>
         </div>
         <div class="flex-1">
-          <h3 class="text-2xl font-bold text-slate-800">Heatmap</h3>
+          <h3 class="text-2xl font-bold text-slate-800">Rute Terpendek</h3>
           <p class="mt-2 text-base leading-relaxed text-slate-600">
-            Menampilkan area Kota Bekasi dengan konsentrasi kejadian banjir paling tinggi berdasarkan data historis.
+            Mencari jalur terpendek antara dua titik di jaringan jalan Kota Bekasi. Pengguna cukup mengklik titik
+            asal dan tujuan pada peta untuk menampilkan rute beserta estimasi jarak tempuh.
           </p>
         </div>
       </article>
 
       <article class="flex items-start gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(37,99,235,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-6">
         <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-blue-50 shadow-inner md:h-28 md:w-28">
-          <svg viewBox="0 0 120 120" class="h-16 w-16 text-sky-700" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi isochrone rute evakuasi">
-            <path d="M24 84L50 52L66 66L94 38" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="24" cy="84" r="7" fill="currentColor" opacity="0.9"/>
-            <circle cx="50" cy="52" r="7" fill="currentColor" opacity="0.9"/>
-            <circle cx="66" cy="66" r="7" fill="currentColor" opacity="0.9"/>
-            <circle cx="94" cy="38" r="7" fill="currentColor" opacity="0.9"/>
-            <path d="M20 26C31 20 40 20 48 27C60 35 64 46 78 46C88 46 95 40 102 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-            <path d="M18 92C40 78 56 82 72 70C83 62 90 56 102 52" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+          <svg viewBox="0 0 120 120" class="h-16 w-16 text-sky-700" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visualisasi geolokasi pengguna">
+            <circle cx="60" cy="48" r="18" stroke="currentColor" stroke-width="3" opacity="0.3"/>
+            <circle cx="60" cy="48" r="10" stroke="currentColor" stroke-width="3" opacity="0.6"/>
+            <circle cx="60" cy="48" r="4" fill="currentColor"/>
+            <line x1="60" y1="26" x2="60" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="60" y1="70" x2="60" y2="78" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="38" y1="48" x2="30" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="82" y1="48" x2="90" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M46 96C46 88 52 82 60 82C68 82 74 88 74 96" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
           </svg>
         </div>
         <div class="flex-1">
-          <h3 class="text-2xl font-bold text-slate-800">Isochrone</h3>
+          <h3 class="text-2xl font-bold text-slate-800">Geolokasi</h3>
           <p class="mt-2 text-base leading-relaxed text-slate-600">
-            Menentukan area yang dapat dicapai dari rumah sakit dalam waktu 5, 10, atau 15 menit saat kondisi jalan
-            normal atau ketika beberapa ruas jalan terdampak banjir.
+            Menunjukkan lokasi pengguna saat ini pada peta dengan satu klik tombol. Peta akan langsung berpindah
+            ke posisi pengguna beserta indikator akurasi dan detail koordinat.
           </p>
         </div>
       </article>
@@ -238,38 +254,41 @@
         Penggunaan GeoInsight
       </p>
       <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-800 md:text-4xl">
-        Lihatlah apakah lokasi anda termasuk rawan bencana dalam 3 langkah.
+        Mulai analisis kondisi kebencanaan di Kota Bekasi dalam 3 langkah.
       </h2>
     </div>
 
     <div class="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
       <article class="group flex h-full flex-col items-center rounded-[1.5rem] border border-slate-200 bg-white/95 p-6 text-center shadow-[0_18px_40px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-7">
         <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-2xl shadow-lg shadow-blue-200/80">
-          <span aria-label="Pilih lokasi">📍</span>
+          <span aria-label="Eksplorasi layer peta">🗺️</span>
         </div>
-        <h3 class="mb-3 text-xl font-bold text-slate-800 md:text-2xl">Pilih &amp; Cek Lokasi</h3>
+        <h3 class="mb-3 text-xl font-bold text-slate-800 md:text-2xl">Eksplorasi Layer</h3>
         <p class="text-base leading-relaxed text-slate-600">
-          Sistem menampilkan informasi risiko banjir dan longsor di lokasi tersebut beserta radius area rawan.
+          Aktifkan atau nonaktifkan layer peta seperti wilayah banjir, puskesmas, jaringan jalan, dan heatmap
+          melalui panel Layer Peta di sisi kiri layar.
         </p>
       </article>
 
       <article class="group flex h-full flex-col items-center rounded-[1.5rem] border border-slate-200 bg-white/95 p-6 text-center shadow-[0_18px_40px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-7">
         <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-2xl shadow-lg shadow-blue-200/80">
-          <span aria-label="Analisis kondisi bencana">📊</span>
+          <span aria-label="Analisis spasial">📊</span>
         </div>
-        <h3 class="mb-3 text-xl font-bold text-slate-800 md:text-2xl">Analisis Kondisi Bencana</h3>
+        <h3 class="mb-3 text-xl font-bold text-slate-800 md:text-2xl">Analisis Spasial</h3>
         <p class="text-base leading-relaxed text-slate-600">
-          Gunakan time series dan heatmap untuk melihat perkembangan kejadian dari waktu ke waktu serta konsentrasi bencana.
+          Gunakan analisis isochrone untuk melihat area jangkauan waktu atau rute terpendek untuk mencari
+          jalur optimal antara dua titik di jaringan jalan Bekasi.
         </p>
       </article>
 
       <article class="group flex h-full flex-col items-center rounded-[1.5rem] border border-slate-200 bg-white/95 p-6 text-center shadow-[0_18px_40px_rgba(37,99,235,0.08)] transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[0_24px_50px_rgba(6,182,212,0.12)] md:p-7">
         <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-2xl shadow-lg shadow-blue-200/80">
-          <span aria-label="Tentukan jalur evakuasi">🧭</span>
+          <span aria-label="Cari lokasi saya">📍</span>
         </div>
-        <h3 class="mb-3 text-xl font-bold text-slate-800 md:text-2xl">Tentukan Jalur Evakuasi</h3>
+        <h3 class="mb-3 text-xl font-bold text-slate-800 md:text-2xl">Tentukan Lokasi</h3>
         <p class="text-base leading-relaxed text-slate-600">
-          Gunakan fitur isochrone untuk mengetahui titik evakuasi/fasilitas terdekat dengan menampilkan jangkauan waktu ke titik aman.
+          Klik tombol geolokasi untuk mengetahui posisi Anda saat ini pada peta dan lihat
+          apakah lokasi Anda termasuk dalam area rawan banjir.
         </p>
       </article>
     </div>
@@ -282,7 +301,7 @@
       <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800">
         Mulai deteksi lokasi anda
       </h2>
-      <p class="text-base md:text-lg text-slate-600 leading-relaxed max-w-xl mx-auto">WebGIS Interaktif Berbasis Mitigasi Bencana - Multi Hazard dengan analisis spasial</p>
+      <p class="text-base md:text-lg text-slate-600 leading-relaxed max-w-xl mx-auto">Peta interaktif dengan data wilayah banjir, puskesmas, jaringan jalan, dan analisis spasial isochrone serta rute terpendek.</p>
     </div>
 
     <div class="pt-5">

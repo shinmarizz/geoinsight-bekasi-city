@@ -4,6 +4,8 @@
   "private": true,
   "description": "Interactive Disaster WebGIS for Bekasi City",
   "scripts": {
+    "start": "node index.js",
+    "main":"src/server.js",
     "dev": "cd front-end && npm run dev",
     "build": "cd front-end && npm run build",
     "preview": "cd front-end && npm run preview",
