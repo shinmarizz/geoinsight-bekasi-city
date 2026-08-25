@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Interactive Disaster WebGIS for Bekasi City",
+  "workspaces": [
+    "front-end",
+    "back-end"
+  ],
   "scripts": {
     "dev": "cd front-end && npm run dev",
     "build": "cd front-end && npm run build",
