@@ -1,10 +1,12 @@
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '../style.css'
-import { addFloodPopup, addPuskesmasPopup, loadMapData as fetchMapData } from '../../popUps/popup';
+import { addFloodPopup, addPuskesmasPopup, addJalanPopup, loadMapData as fetchMapData } from '../../popUps/popup';
 import { API_BASE, DEFAULT_MAP_STYLE, GEOMAPID_STYLE } from '../config'
 import { PUSKESMAS_HEATMAP_LAYER_ID, addPuskesmasHeatmapLayer } from './heatmap'
-import { loadIsochrone } from '../engine/isochroneTool'
+import { loadIsochrone, clearIsochrone, formatIsochroneSummary } from '../engine/isochroneTool'
+import { requestShortestPath, clearShortestPath, formatRouteSummary } from '../engine/networkTool'
+import { initGeolocation } from '../engine/geolocationTool'
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -81,21 +83,36 @@ map.on('error', (event) => {
 
 let puskesmas = { type: 'FeatureCollection', features: [] }
 let flood = { type: 'FeatureCollection', features: [] }
+let jalan = { type: 'FeatureCollection', features: [] }
 let puskesmasHeatmap = { type: 'FeatureCollection', features: [] }
 let clickHandlersAttached = false
 let hasFitBounds = false
-let isochroneMode = false
+
+let activeAnalysisMode = null // null | 'isochrone' | 'route'
+let firstRoutePoint = null
 
 const layerVisibility = {
+  jalanMinor: true,
+  jalanMajor: true,
   puskesmas: true,
   flood: true,
   [PUSKESMAS_HEATMAP_LAYER_ID]: false
 }
 
+const TRAVEL_MODE_OPTIONS = [
+  { value: 'jalan_kaki', label: 'Jalan Kaki' },
+  { value: 'motor', label: 'Sepeda Motor' },
+  { value: 'mobil', label: 'Mobil' }
+]
+
+const getSelectedMode = () => analysisModeSelect?.value || 'jalan_kaki'
+const getSelectedMinutes = () => Number(analysisMinutesSelect?.value || 15)
+
 const loadData = async () => {
   const data = await fetchMapData()
   puskesmas = data.puskesmas
   flood = data.flood
+  jalan = data.jalan ?? jalan
 
   try {
     const heatmapResponse = await fetch(`${API_BASE}/api/routes/heatmap/puskesmas?radius=750`)
@@ -108,9 +125,101 @@ const loadData = async () => {
   addGeoJsonLayers()
 }
 
-map.addControl( new maplibregl.NavigationControl(), "top-right")
+map.addControl(new maplibregl.NavigationControl(), "top-right")
 map.addControl(new maplibregl.FullscreenControl(), "top-right")
-map.addControl(new maplibregl.GlobeControl(), "top-right")
+
+const createSelect = ({ options, ariaLabel }) => {
+  const select = document.createElement('select')
+  select.setAttribute('aria-label', ariaLabel)
+  Object.assign(select.style, {
+    width: '100%',
+    padding: '4px 6px',
+    border: '1px solid #d1d5db',
+    borderRadius: '6px',
+    background: '#ffffff',
+    font: '12px/1.35 sans-serif',
+    color: '#111827'
+  })
+  options.forEach(({ value, label }) => {
+    const option = document.createElement('option')
+    option.value = value
+    option.textContent = label
+    select.appendChild(option)
+  })
+  return select
+}
+
+const createPanelButton = ({ label, background, border, color }) => {
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.textContent = label
+  Object.assign(button.style, {
+    marginTop: '8px', padding: '6px 8px', width: '100%', cursor: 'pointer',
+    border: `1px solid ${border}`, borderRadius: '6px', background, color,
+    fontWeight: '600'
+  })
+  return button
+}
+
+const setResultBox = (html) => {
+  if (!analysisResultBox) return
+  analysisResultBox.innerHTML = html
+  analysisResultBox.style.display = html ? 'block' : 'none'
+}
+
+const resetAnalysisState = ({ keepResult = false } = {}) => {
+  activeAnalysisMode = null
+  firstRoutePoint = null
+  map.getCanvas().style.cursor = ''
+  isochroneButton.textContent = 'Analisis Isochrone (klik peta)'
+  routeButton.textContent = 'Rute Terpendek ke Puskesmas (2 klik)'
+  if (!keepResult) setResultBox('')
+}
+
+const setAnalysisStatus = (html) => setResultBox(html)
+
+const handleIsochroneClick = async ({ longitude, latitude }) => {
+  setAnalysisStatus('<p>⏳ Menghitung isochrone…</p>')
+  try {
+    const data = await loadIsochrone(map, {
+      longitude,
+      latitude,
+      minutes: getSelectedMinutes(),
+      mode: getSelectedMode()
+    })
+    resetAnalysisState()
+    setResultBox(formatIsochroneSummary(data))
+  } catch (error) {
+    resetAnalysisState({ keepResult: true })
+    setAnalysisStatus(`<p style="color:#b91c1c">⚠️ ${error.message}</p>`)
+  }
+}
+
+const handleRouteClick = async ({ longitude, latitude }) => {
+  if (!firstRoutePoint) {
+    firstRoutePoint = [longitude, latitude]
+    clearShortestPath(map)
+    routeButton.textContent = 'Titik awal dipilih — klik tujuan di peta'
+    return
+  }
+
+  const [startLng, startLat] = firstRoutePoint
+  routeButton.textContent = '⏳ Menghitung rute…'
+  try {
+    const data = await requestShortestPath(map, {
+      startLng,
+      startLat,
+      endLng: longitude,
+      endLat: latitude,
+      mode: getSelectedMode()
+    })
+    resetAnalysisState()
+    setResultBox(formatRouteSummary(data))
+  } catch (error) {
+    resetAnalysisState({ keepResult: true })
+    setAnalysisStatus(`<p style="color:#b91c1c">⚠️ ${error.message}</p>`)
+  }
+}
 
 const addLayerSwitcher = () => {
   const panel = document.createElement('fieldset')
@@ -121,35 +230,48 @@ const addLayerSwitcher = () => {
     left: '20px',
     zIndex: '2',
     margin: '0',
-    padding: '20px 16px',
-    minWidth: '170px',
+    padding: '10px 12px',
+    minWidth: '190px',
+    maxWidth: '210px',
+    maxHeight: 'calc(100vh - 100px)',
+    overflowY: 'auto',
     border: '1px solid #d1d5db',
     borderRadius: '8px',
     background: 'rgba(255, 255, 255, 0.95)',
     boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)',
-    font: '13px/1.4 sans-serif'
+    font: '12px/1.35 sans-serif'
   })
 
   const title = document.createElement('h4')
   title.innerText = 'Layer Peta'
-  title.style.margin = '0 0 8px 0'
-  title.style.fontSize = '15px'
+  title.style.margin = '0 0 6px 0'
+  title.style.fontSize = '13px'
   title.style.fontWeight = '700'
   title.style.color = '#111827'
   panel.appendChild(title)
 
+  const toggleGroup = (ids, visible) => {
+    ids.forEach((id) => {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none')
+      }
+    })
+  }
+
   const layers = [
+    { id: 'jalanMinor', label: 'Jalan (lokal/setapak)', color: '#2563eb', groupIds: ['jalanMinor'] },
+    { id: 'jalanMajor', label: 'Jalan (arteri/kolektor/tol)', color: 'linear-gradient(90deg, #7c3aed, #dc2626, #ea580c)', groupIds: ['jalanMajor'] },
     { id: 'puskesmas', label: 'Puskesmas', color: '#0080ff' },
     { id: PUSKESMAS_HEATMAP_LAYER_ID, label: 'Heatmap Puskesmas', color: 'linear-gradient(90deg, #38bdf8, #2563eb, #dc2626)' },
     { id: 'flood', label: 'Wilayah banjir', color: '#de2d26' }
   ]
 
-  layers.forEach(({ id, label, color }) => {
+  layers.forEach(({ id, label, color, groupIds }) => {
     const row = document.createElement('label')
     row.style.display = 'flex'
     row.style.alignItems = 'center'
-    row.style.gap = '10px'
-    row.style.marginTop = '10px'
+    row.style.gap = '6px'
+    row.style.marginTop = '6px'
     row.style.cursor = 'pointer'
 
     const checkbox = document.createElement('input')
@@ -157,17 +279,15 @@ const addLayerSwitcher = () => {
     checkbox.checked = layerVisibility[id] ?? true
     checkbox.addEventListener('change', () => {
       layerVisibility[id] = checkbox.checked
-
-      if (map.getLayer(id)) {
-        map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none')
-      }
+      toggleGroup(groupIds ?? [id], checkbox.checked)
     })
 
     const swatch = document.createElement('span')
     Object.assign(swatch.style, {
-      width: '10px',
-      height: '10px',
+      width: '8px',
+      height: '8px',
       display: 'inline-block',
+      flexShrink: '0',
       background: color,
       border: '1px solid #374151'
     })
@@ -176,27 +296,165 @@ const addLayerSwitcher = () => {
     panel.appendChild(row)
   })
 
-  const isochroneButton = document.createElement('button')
-  isochroneButton.type = 'button'
-  isochroneButton.textContent = 'Pilih titik isochrone 15 menit'
-  Object.assign(isochroneButton.style, {
-    marginTop: '16px', padding: '8px 10px', width: '100%', cursor: 'pointer',
-    border: '1px solid #c2410c', borderRadius: '6px', background: '#fff7ed', color: '#9a3412'
+  const analysisTitle = document.createElement('h4')
+  analysisTitle.innerText = 'Analisis Spasial'
+  analysisTitle.style.margin = '12px 0 4px 0'
+  analysisTitle.style.fontSize = '13px'
+  analysisTitle.style.fontWeight = '700'
+  analysisTitle.style.color = '#111827'
+  panel.appendChild(analysisTitle)
+
+  const modeLabel = document.createElement('div')
+  modeLabel.innerText = 'Moda perjalanan:'
+  modeLabel.style.marginTop = '4px'
+  modeLabel.style.fontWeight = '600'
+  modeLabel.style.fontSize = '12px'
+  panel.appendChild(modeLabel)
+
+  const analysisModeSelect = createSelect({
+    options: TRAVEL_MODE_OPTIONS,
+    ariaLabel: 'Moda perjalanan analisis'
+  })
+  window.__analysisModeSelect = analysisModeSelect
+  panel.appendChild(analysisModeSelect)
+
+  const minutesLabel = document.createElement('div')
+  minutesLabel.innerText = 'Batas waktu isochrone:'
+  minutesLabel.style.marginTop = '6px'
+  minutesLabel.style.fontWeight = '600'
+  minutesLabel.style.fontSize = '12px'
+  panel.appendChild(minutesLabel)
+
+  const analysisMinutesSelect = createSelect({
+    options: [5, 10, 15, 20, 30].map((minutes) => ({ value: String(minutes), label: `${minutes} menit` })),
+    ariaLabel: 'Batas waktu isochrone'
+  })
+  analysisMinutesSelect.value = '15'
+  window.__analysisMinutesSelect = analysisMinutesSelect
+  panel.appendChild(analysisMinutesSelect)
+
+  const isochroneButton = createPanelButton({
+    label: 'Analisis Isochrone (klik peta)',
+    background: '#fff7ed', border: '#c2410c', color: '#9a3412'
   })
   isochroneButton.addEventListener('click', () => {
-    isochroneMode = !isochroneMode
-    isochroneButton.textContent = isochroneMode
-      ? 'Klik peta untuk membuat isochrone'
-      : 'Pilih titik isochrone 15 menit'
-    map.getCanvas().style.cursor = isochroneMode ? 'crosshair' : ''
+    const next = activeAnalysisMode === 'isochrone' ? null : 'isochrone'
+    resetAnalysisState()
+    activeAnalysisMode = next
+    if (next) {
+      isochroneButton.textContent = 'Klik peta untuk titik asal isochrone'
+      map.getCanvas().style.cursor = 'crosshair'
+      setAnalysisStatus('<p><em>Klik lokasi Anda di peta untuk memulai.</em></p>')
+    }
   })
   panel.appendChild(isochroneButton)
 
+  const routeButton = createPanelButton({
+    label: 'Rute Terpendek (2 klik)',
+    background: '#f0f9ff', border: '#0369a1', color: '#075985'
+  })
+  routeButton.addEventListener('click', () => {
+    const next = activeAnalysisMode === 'route' ? null : 'route'
+    resetAnalysisState()
+    activeAnalysisMode = next
+    if (next) {
+      routeButton.textContent = 'Klik titik awal rute di peta'
+      map.getCanvas().style.cursor = 'crosshair'
+      setAnalysisStatus('<p><em>Klik titik awal, lalu klik titik tujuan.</em></p>')
+    }
+  })
+  panel.appendChild(routeButton)
+
+  const analysisResultBox = document.createElement('div')
+  Object.assign(analysisResultBox.style, {
+    display: 'none',
+    marginTop: '8px',
+    padding: '8px',
+    border: '1px solid #e5e7eb',
+    borderRadius: '6px',
+    background: '#f9fafb',
+    fontSize: '11.5px',
+    lineHeight: '1.4'
+  })
+  panel.appendChild(analysisResultBox)
+
+  const hint = document.createElement('p')
+  hint.innerHTML = '<em>Isochrone menghitung area jangkauan nyata melalui jaringan jalan Bekasi + rute ke puskesmas terdekat.</em>'
+  hint.style.marginTop = '8px'
+  hint.style.color = '#6b7280'
+  hint.style.fontSize = '11px'
+  panel.appendChild(hint)
+
   mapElement.appendChild(panel)
+
+  window.__analysisRefs = { analysisModeSelect, analysisMinutesSelect, isochroneButton, routeButton, analysisResultBox }
 }
 
 addLayerSwitcher()
 
+const { analysisModeSelect, analysisMinutesSelect, isochroneButton, routeButton, analysisResultBox } = window.__analysisRefs
+delete window.__analysisRefs
+delete window.__analysisModeSelect
+delete window.__analysisMinutesSelect
+
+const addJalanSource = () => {
+  const source = map.getSource('jalanRoute')
+  if (source) {
+    source.setData(jalan)
+    return
+  }
+  map.addSource('jalanRoute', {
+    type: 'geojson',
+    data: jalan
+  })
+}
+
+const JALAN_MAJOR_CLASSES = [
+  'Jalan Tol Dua Jalur Dengan Pemisah Fisik',
+  'Jalan Tol Dua Jalur Tanpa Pemisah Fisik',
+  'Jalan Arteri',
+  'Jalan Kolektor'
+]
+
+const addJalanLayers = () => {
+  if (map.getLayer('jalanMinor')) {
+    map.setLayoutProperty('jalanMinor', 'visibility', layerVisibility.jalanMinor ? 'visible' : 'none')
+  } else {
+    map.addLayer({
+      id: 'jalanMinor',
+      type: 'line',
+      source: 'jalanRoute',
+      layout: {
+        visibility: layerVisibility.jalanMinor ? 'visible' : 'none',
+        'line-cap': 'round'
+      },
+      filter: ['!', ['in', ['get', 'kelas_jalan'], ['literal', JALAN_MAJOR_CLASSES]]],
+      paint: {
+        'line-color': ['get', 'warna'],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.6, 14, 2, 17, 4]
+      }
+    }, 'puskesmas')
+  }
+
+  if (map.getLayer('jalanMajor')) {
+    map.setLayoutProperty('jalanMajor', 'visibility', layerVisibility.jalanMajor ? 'visible' : 'none')
+  } else {
+    map.addLayer({
+      id: 'jalanMajor',
+      type: 'line',
+      source: 'jalanRoute',
+      layout: {
+        visibility: layerVisibility.jalanMajor ? 'visible' : 'none',
+        'line-cap': 'round'
+      },
+      filter: ['in', ['get', 'kelas_jalan'], ['literal', JALAN_MAJOR_CLASSES]],
+      paint: {
+        'line-color': ['get', 'warna'],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1.4, 14, 3.5, 17, 8]
+      }
+    }, 'puskesmas')
+  }
+}
 
 const addPuskesmasSource = () => {
   const source = map.getSource('puskesmasRoute')
@@ -292,17 +550,17 @@ const attachClickHandlers = () => {
 
   map.on('click', 'puskesmas', (event) => addPuskesmasPopup(map, event))
   map.on('click', 'flood', (event) => addFloodPopup(map, event))
-  map.on('mouseenter', 'puskesmas', () => {
-    map.getCanvas().style.cursor = 'pointer'
-  })
-  map.on('mouseleave', 'puskesmas', () => {
-    map.getCanvas().style.cursor = ''
-  })
-  map.on('mouseenter', 'flood', () => {
-    map.getCanvas().style.cursor = 'pointer'
-  })
-  map.on('mouseleave', 'flood', () => {
-    map.getCanvas().style.cursor = ''
+  map.on('click', 'jalanMinor', (event) => addJalanPopup(map, event))
+  map.on('click', 'jalanMajor', (event) => addJalanPopup(map, event))
+
+  const interactiveLayers = ['puskesmas', 'flood', 'jalanMinor', 'jalanMajor']
+  interactiveLayers.forEach((layerId) => {
+    map.on('mouseenter', layerId, () => {
+      if (!activeAnalysisMode) map.getCanvas().style.cursor = 'pointer'
+    })
+    map.on('mouseleave', layerId, () => {
+      if (!activeAnalysisMode) map.getCanvas().style.cursor = ''
+    })
   })
 
   clickHandlersAttached = true
@@ -363,6 +621,9 @@ const addGeoJsonLayers = () => {
   addFloodSource()
   addFloodLayer()
 
+  addJalanSource()
+  addJalanLayers()
+
   addPuskesmasHeatmapLayer(map, {
     beforeLayerId: 'puskesmas',
     visible: layerVisibility[PUSKESMAS_HEATMAP_LAYER_ID]
@@ -374,23 +635,21 @@ const addGeoJsonLayers = () => {
   fitToMapData()
 }
 
-map.on('click', async (event) => {
-  if (!isochroneMode) return
+map.on('click', (event) => {
+  if (!activeAnalysisMode) return
 
-  try {
-    await loadIsochrone(map, {
-      longitude: event.lngLat.lng,
-      latitude: event.lngLat.lat
-    })
-    isochroneMode = false
-    map.getCanvas().style.cursor = ''
-  } catch (error) {
-    console.error(error)
-  }
+  const point = { longitude: event.lngLat.lng, latitude: event.lngLat.lat }
+  if (activeAnalysisMode === 'isochrone') handleIsochroneClick(point)
+  else if (activeAnalysisMode === 'route') handleRouteClick(point)
 })
 
-map.on('load', loadData)
-map.on('style.load', addGeoJsonLayers)
+map.on('load', () => {
+  loadData()
+  initGeolocation(map)
+})
+map.on('style.load', () => {
+  addGeoJsonLayers()
+})
 
 window.addEventListener('load', () => {
     map.resize()

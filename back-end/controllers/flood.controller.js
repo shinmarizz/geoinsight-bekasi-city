@@ -20,7 +20,7 @@ export const getFloodData = async (req,res) => {
         res.json(geojson)
 
     } catch(err){
-        console.log(err)
+        console.error(err)
         res.status(500).json(
             {
             message : ("Failed to fetch Flood Data"),

@@ -287,3 +287,21 @@ section {
   border: 2px solid #ccc;
 }
 
+
+/* Analysis panel result box */
+.analysis-result p {
+  margin: 0 0 6px 0;
+}
+
+.analysis-result ol.analysis-list {
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+}
+
+.analysis-result ol.analysis-list li {
+  margin-bottom: 6px;
+}
+
+.analysis-result ol.analysis-list small {
+  color: #6b7280;
+}

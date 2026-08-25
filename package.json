@@ -1,21 +1,12 @@
 {
-  "name": "front-end",
-  "version": "0.0.0",
+  "name": "geoinsight-webgis",
+  "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "description": "Interactive Disaster WebGIS for Bekasi City",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^8.1.1"
-  },
-  "dependencies": {
-    "@maptiler/leaflet-maptilersdk": "^4.1.1",
-    "@maptiler/sdk": "^4.1.0",
-    "@terraformer/wkt": "^2.2.2",
-    "leaflet": "^1.9.4",
-    "maplibre-gl": "^5.24.0"
+    "dev": "cd front-end && npm run dev",
+    "build": "cd front-end && npm run build",
+    "preview": "cd front-end && npm run preview",
+    "server": "cd back-end && npm run dev"
   }
 }

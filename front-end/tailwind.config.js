@@ -1,10 +1,11 @@
 module.exports = {
-    content:['index.html'],
-    theme:{
-        extend:{
-            colors:{
-                primary:'.text-blue-600'
+    content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './popUps/**/*.js'],
+    theme: {
+        extend: {
+            colors: {
+                primary: '#2563eb'
             }
-    }},
-    plugins:{}
+        }
+    },
+    plugins: []
 }

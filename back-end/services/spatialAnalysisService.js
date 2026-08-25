@@ -22,19 +22,4 @@ const getPuskesmasHeatmap = async (radiusMeters = 750) => {
     return result.rows
 }
 
-const getIsochrone = async ({ longitude, latitude, minutes, speedKmh }) => {
-    const distanceMeters = (speedKmh * 1000 * minutes) / 60
-    const query = `
-        SELECT ST_AsGeoJSON(
-            ST_Buffer(
-                ST_SetSRID(ST_Point($1, $2), 4326)::geography,
-                $3,
-                'quad_segs=48'
-            )::geometry
-        )::json AS geom
-    `
-    const result = await pool.query(query, [longitude, latitude, distanceMeters])
-    return { ...result.rows[0], distanceMeters }
-}
-
-export default { getPuskesmasHeatmap, getIsochrone }
+export default { getPuskesmasHeatmap }

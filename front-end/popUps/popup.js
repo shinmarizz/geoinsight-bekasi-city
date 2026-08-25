@@ -18,13 +18,15 @@ const loadGeoJson = async (path, label) => {
 }
 
 export const loadMapData = async () => {
-  const [puskesmasResult, floodResult] = await Promise.allSettled([
+  const [puskesmasResult, floodResult, jalanResult] = await Promise.allSettled([
     loadGeoJson('puskesmas', 'puskesmas'),
-    loadGeoJson('flood', 'flood')
+    loadGeoJson('flood', 'flood'),
+    loadGeoJson('jalan?simplified=1', 'jalan')
   ])
 
   if (puskesmasResult.status === 'rejected') console.error(puskesmasResult.reason)
   if (floodResult.status === 'rejected') console.error(floodResult.reason)
+  if (jalanResult.status === 'rejected') console.error(jalanResult.reason)
 
   return {
     puskesmas: puskesmasResult.status === 'fulfilled'
@@ -32,6 +34,9 @@ export const loadMapData = async () => {
       : emptyFeatureCollection,
     flood: floodResult.status === 'fulfilled'
       ? floodResult.value
+      : emptyFeatureCollection,
+    jalan: jalanResult.status === 'fulfilled'
+      ? jalanResult.value
       : emptyFeatureCollection
   }
 }
@@ -126,6 +131,46 @@ export function addPuskesmasPopup(map, event) {
         <div class="geo-popup-footer">
           ${buildCoordinateChips(longitude, latitude)}
           ${buildMapsLink(latitude, longitude)}
+        </div>
+      </div>
+    `)
+    .addTo(map)
+}
+
+export function addJalanPopup(map, event) {
+  const feature = event.features?.[0]
+  if (!feature) return
+
+  const properties = feature.properties || {}
+  const { lng, lat } = event.lngLat
+  const panjangKm = Number(properties.panjang_meter)
+  const warna = properties.warna || '#9ca3af'
+
+  new Popup()
+    .setLngLat(event.lngLat)
+    .setHTML(`
+      <div class="geo-popup geo-popup-jalan">
+        <div class="geo-popup-header">
+          <span class="geo-popup-kicker">Jaringan Jalan</span>
+          <strong>${escapeHtml(properties.kelas_jalan || 'Jalan')}</strong>
+          <span class="geo-popup-badge" style="background:${warna};color:#fff">
+            <span aria-hidden="true" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:4px"></span>
+            Kelas Jalan
+          </span>
+        </div>
+
+        <table class="geo-popup-table">
+          <tbody>
+            ${buildPopupTable([
+              { label: 'Kelas Jalan', value: properties.kelas_jalan },
+              { label: 'Panjang Segmen', value: Number.isFinite(panjangKm) ? `${(panjangKm / 1000).toFixed(2)} km` : '-' },
+              { label: 'ID Segmen', value: properties.gid }
+            ])}
+          </tbody>
+        </table>
+
+        <div class="geo-popup-footer">
+          ${buildCoordinateChips(lng, lat)}
         </div>
       </div>
     `)
