@@ -4,22 +4,11 @@
   "private": true,
   "description": "Interactive Disaster WebGIS for Bekasi City",
   "scripts": {
-    "main":"src/server.js",
     "dev": "cd front-end && npm run dev",
     "build": "cd front-end && npm run build",
     "preview": "cd front-end && npm run preview",
     "server": "cd back-end && npm run dev",
-      "start": "cd back-end && npm start"
-
-  },
-  "dependencies": {
-    "@terraformer/wkt": "^2.2.2",
-    "maplibre-gl": "^5.0.0",
-    "tailwindcss": "^4.0.0"
-  },
-  "devDependencies": {
-    "vite": "^7.0.0",
-    "@tailwindcss/vite": "^4.0.0"
+    "start": "cd back-end && npm start"
   }
 }
 
