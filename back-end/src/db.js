@@ -1,5 +1,6 @@
 import pg from "pg"
 import { configDotenv } from "dotenv"
+import fs from "fs"
 
 configDotenv()
 
