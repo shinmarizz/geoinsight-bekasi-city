@@ -6,7 +6,9 @@ configDotenv()
 const { Pool } = pg
 
 const pool = process.env.DATABASE_URL
-    ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
+    ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { 
+        rejectUnauthorized: true,
+    ca:fs.readFileSync('./back-end/prod-ca-2021.crt') } })
     : new Pool({
         user: process.env.DB_USER,
         host: process.env.DB_HOST,
