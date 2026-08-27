@@ -12,4 +12,4 @@ export const GEOMAPID_STYLE = geomapidValue.startsWith('http')
 		: DEFAULT_MAP_STYLE
 
 	console.log("API_BASE : ", API_BASE)
-	console.log("GEOMAPID_STYLE_BASE : ", GEOMAPID_STYLE_BASE)
+	console.log("GEOMAPID_STYLE_BASE : ", GEOMAPID_STYLE)
