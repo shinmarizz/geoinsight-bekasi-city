@@ -1,15 +1,12 @@
 import pg from "pg"
 import { configDotenv } from "dotenv"
-import fs from "fs"
 
 configDotenv()
 
 const { Pool } = pg
 
 const pool = process.env.DATABASE_URL
-    ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { 
-        rejectUnauthorized: true,
-    ca:fs.readFileSync('./prod-ca-2021.crt') } })
+    ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 15000, idleTimeoutMillis: 30000, max: 10 })
     : new Pool({
         user: process.env.DB_USER,
         host: process.env.DB_HOST,

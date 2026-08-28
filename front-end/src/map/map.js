@@ -67,7 +67,7 @@ document.body.prepend(header)
 
 const map = new maplibregl.Map({
   container: mapElement,
-  style: GEOMAPID_STYLE_BASE,
+  style: GEOMAPID_STYLE,
   center: [107.0, -6.2],
   zoom: 10,
 })
