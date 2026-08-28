@@ -1,400 +1,213 @@
-# 🗺️ WebGIS GeoInsight - Mitigasi Bencana & Analisis Transportasi Kota Bekasi
+# 🗺️ WebGIS GeoInsight — Mitigasi Bencana & Analisis Transportasi Kota Bekasi
 
 <div align="center">
 
-**Platform WebGIS Interaktif untuk Visualisasi Risiko Multi-Bencana & Jaringan Transportasi**
+**Platform WebGIS interaktif untuk visualisasi risiko banjir, jaringan transportasi, dan analisis spasial Kota Bekasi.**
 
-[🔗 Live Demo](#) · [📖 Dokumentasi](#-dokumentasi-teknis) · [📋 Lisensi](#-lisensi)
+[🔗 Backend API](https://geoinsight-bekasi-city-production.up.railway.app) · [📖 Dokumentasi](#dokumentasi-teknis) · [📋 Lisensi](#lisensi)
 
 </div>
 
 ---
 
+## 📌 Ringkasan
+
+**GeoInsight** adalah aplikasi WebGIS (Web Geographic Information System) yang dibangun untuk memvisualisasikan data risiko bencana dan jaringan transportasi Kota Bekasi secara interaktif. Aplikasi menampilkan peta banjir, lokasi puskesmas, dan jaringan jalan di atas peta dasar (basemap), dilengkapi dengan **analisis spasial isochrone** dan **rute terpendek** melalui jaringan jalan nyata, serta dukungan **pembaruan data real-time** lewat Supabase.
+
+Proyek ini mengimplementasikan alur lengkap **backend → database spasial → frontend WebGIS**, menggunakan teknologi open-source modern (MapLibre GL, PostgreSQL+PostGIS, Node.js, Vite), dan telah di-deploy ke **Vercel** (frontend), **Railway** (backend), serta **Supabase** (database).
+
+---
+
 ## 📋 Daftar Isi
 
-- [Latar Belakang](#-latar-belakang)
-- [Tujuan Proyek](#-tujuan-proyek)
-- [Fitur Utama](#-fitur-utama)
-- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
-- [Sumber Data](#-sumber-data)
-- [Struktur Repository](#-struktur-repository)
-- [Deployment & CI/CD](#-deployment--cicd)
-- [Cara Menjalankan](#-cara-menjalankan)
-- [Dokumentasi Teknis](#-dokumentasi-teknis)
-- [Roadmap](#-roadmap)
-- [Risiko & Mitigasi](#-risiko--mitigasi)
-- [Lisensi](#-lisensi)
+- [Informasi Proyek](#informasi-proyek)
+- [Data yang Digunakan](#data-yang-digunakan)
+- [Proses / Arsitektur](#proses--arsitektur)
+- [Stack Teknologi](#stack-teknologi)
+- [Endpoint API](#endpoint-api)
+- [Fitur Implementasi](#fitur-implementasi)
+- [Struktur Repository](#struktur-repository)
+- [Cara Menjalankan](#cara-menjalankan)
+- [Deployment](#deployment)
+- [Hasil](#hasil)
+- [Lisensi](#lisensi)
 
 ---
 
-## 🌍 Latar Belakang
+## ℹ️ Informasi Proyek
 
-Bencana alam seperti **banjir** dan **longsor** menjadi tantangan serius bagi pemerintah dan masyarakat kota/kabupaten di Indonesia, khususnya **Kota Bekasi** yang memiliki risiko tinggi terhadap banjir musiman dan longsor di area perbukitan. 
+### Latar Belakang
 
-Setiap tahun, kejadian banjir dan longsor di Bekasi mengakibatkan:
-- **Ratusan rumah terendam** air, mengganggu aktivitas ekonomi
-- **Akses transportasi terputus**, menyulitkan proses evakuasi dan distribusi bantuan
-- **Kerugian material dan non-material** yang signifikan bagi komunitas setempat
-- **Minimnya informasi real-time** bagi publik tentang area risiko dan rute evakuasi aman
+Kota Bekasi memiliki risiko tinggi terhadap **banjir musiman**. Persebaran informasi kebencanaan masih tersebar dan belum terintegrasi dalam satu platform geospasial, sehingga menyulitkan masyarakat dalam memahami tingkat risiko serta akses menuju fasilitas penting (puskesmas) dan jalur evakuasi/transportasi yang aman.
 
-### Solusi: GeoInsight WebGIS Platform
+### Tujuan
 
-**GeoInsight** adalah platform WebGIS inovatif yang dirancang untuk:
+1. **Membangun platform WebGIS interaktif** yang memvisualisasikan risiko banjir, jaringan jalan, dan lokasi fasilitas kesehatan dalam satu peta.
+2. **Menyediakan analisis spasial** untuk mendukung pengambilan keputusan, yaitu **isochrone** (area jangkauan waktu tempuh melalui jaringan jalan) dan **rute terpendek**.
+3. **Mendukung pembaruan data real-time** sehingga peta dapat ter-update otomatis saat data pada database berubah.
 
-1. **Memvisualisasikan risiko bencana dengan detail spasial & temporal**
-   - Layer interaktif untuk banjir dan longsor dengan perkembangan historis
-   - Pemetaan tingkat kerawanan (rendah/sedang/tinggi)
+### Cakupan Wilayah
 
-2. **Mengintegrasikan jaringan transportasi & fasilitas evakuasi**
-   - Overlay jaringan jalan, shelter, rumah sakit, kantor pemerintah
-   - Identifikasi rute terdampak dan rute alternatif
-
-3. **Mendukung pengambilan keputusan cepat dalam mitigasi bencana**
-   - Popup informasi risiko lokasi pribadi (Fitur Unggulan #1)
-   - Peta evakuasi dengan perhitungan waktu tempuh ke titik aman (Fitur Unggulan #2)
-
-4. **Meningkatkan literasi bencana masyarakat umum**
-   - Dashboard heatmap kejadian historis untuk edukasi
-   - Antarmuka user-friendly, aksesibel dari perangkat apa pun
-
-Dengan menggunakan teknologi **open-source terkini** (MapLibre GL JS, PostgreSQL+PostGIS, Node.js, Vite), GeoInsight menawarkan solusi yang **scalable, cost-effective, dan berkelanjutan** untuk mitigasi bencana tingkat kota/kabupaten.
+- Lokasi peta berpusat di **Kota Bekasi** (sekitar `107.0°E, -6.2°S`), zoom awal 10.
 
 ---
 
-## 🎯 Tujuan Proyek
+## 🗂️ Data yang Digunakan
 
-### Tujuan Utama
+Data disimpan di **PostgreSQL + PostGIS** pada **Supabase**. Terdapat 3 tabel utama yang diakses backend, serta 1 file data mentah jaringan jalan.
 
-1. **Membangun platform WebGIS interaktif** yang memvisualisasikan risiko bencana (banjir & longsor) dengan integrasi data transportasi untuk mendukung mitigasi bencana di Kota Bekasi
-
-2. **Menyediakan fitur analisis spasial canggih** untuk mendukung keputusan evakuasi, perencanaan rute aman, dan identifikasi area prioritas mitigasi
-
-3. **Mengimplementasikan time series visualization** untuk menunjukkan perkembangan bencana historis per periode waktu, sehingga publik dapat memahami tren dan perubahan risiko
-
-### Tujuan Spesifik
-
-| # | Tujuan Spesifik | Output/KPI |
+| Tabel / File | Isi | Atribut Utama |
 |---|---|---|
-| 1 | Mengintegrasikan data multi-sumber dalam satu dashboard WebGIS terpadu | Minimum 5 layer data terintegrasi (banjir, longsor, jalan, faskes, admin) |
-| 2 | Menyajikan layer hazard dengan styling intuitif & interaktif | Layer hazard tampil dengan warna gradasi risiko (rendah/sedang/tinggi) |
-| 3 | Menghitung & menampilkan radius bahaya dari sumber risiko | Buffer tool menghasilkan zona risiko dengan accuracy >95% |
-| 4 | Implementasikan isochrone untuk jangkauan waktu evakuasi | Isochrone tersedia dalam 5-30 menit, calculated dengan akurasi routing >90% |
-| 5 | Menyediakan heatmap kejadian historis untuk edukasi | Heatmap menampilkan density bencana dengan KDE smoothing |
-| 6 | Fitur cek risiko lokasi pribadi via popup informasi | Popup menampilkan risk level, historical events, nearest shelter |
-| 7 | Slider time series untuk analisis temporal bencana | Timeline slider dapat filter data 5+ tahun dengan smooth transitions |
-| 8 | Responsive design untuk desktop & mobile | Aplikasi tersedia di desktop, tablet, mobile dengan UX optimal |
+| `petarisiko_banjirbekasi` | Wilayah risiko banjir (polygon) | `gid`, `kecamatan`, `desa`, `kelas_risi` (`RENDAH`/`SEDANG`/`TINGGI`), `geom` |
+| `jalan_bekasi` | Jaringan jalan (line) | `gid`, `remark` (kelas jalan), `geom` |
+| `puskesmas_utm` | Titik fasilitas kesehatan | `gid`, `nama`, `alamat`, `kecamatan`, `desa`, `longitude`, `latitude`, `geom` |
+| `back-end/data/bekasi_jalan.geojson` | Data mentah jaringan jalan | Sumber: **OpenStreetMap** (Overpass Turbo), lisensi ODbL, ~31.081 fitur |
+
+> **Catatan data:** Ubah-ubah CRS dilakukan dengan PostGIS (`ST_Transform`, `ST_SetSRID`, `ST_Force2D`). Panjang segmen jalan dihitung dalam meter (SRID 32748 = UTM Zona 48S).
+
+### Jumlah Data (terverifikasi)
+
+- **62** titik puskesmas
+- **565** fitur wilayah banjir
+- **±31.081** segmen jaringan jalan (berasal dari OpenStreetMap)
 
 ---
 
-## ✨ Fitur Utama
-
-### 🏆 Fitur Unggulan (Value Proposition)
-
-#### 1️⃣ **"Apakah Lokasi Saya Aman?"** — Cek Risiko Lokasi Pribadi
-
-Pengguna dapat mengklik/mencari alamat atau titik di peta untuk melihat:
+## ⚙️ Proses / Arsitektur
 
 ```
-┌─────────────────────────────────────┐
-│ POPUP INFORMASI RISIKO              │
-├─────────────────────────────────────┤
-│ Lokasi: Jl. Benda, Kel. Pengasinan  │
-│ Koordinat: 107.0°E, 6.2°S          │
-│ ────────────────────────────────────│
-│ 🔴 TINGKAT RISIKO: TINGGI           │
-│ ────────────────────────────────────│
-│ Risiko Banjir:   ████████░░ 80%     │
-│ Risiko Longsor:  ██░░░░░░░░ 20%     │
-│ ────────────────────────────────────│
-│ 📊 KEJADIAN HISTORIS (5 tahun):     │
-│ • Banjir: 12 kali (terakhir Jan23)  │
-│ • Longsor: 2 kali (2019, 2021)      │
-│ ────────────────────────────────────│
-│ ⚠️ ZONA RISIKO:                      │
-│ • 500m dari Sungai Cikarang         │
-│ • Area genangan banjir 2019-2023    │
-│ ────────────────────────────────────│
-│ 🏥 SHELTER TERDEKAT:                 │
-│ • Pendopo Kelurahan Pengasinan (1km)│
-│ • Sekolah SD Negeri 01 (1.5km)      │
-│                                     │
-│ [ ► Lihat Rute Evakuasi ]           │
-└─────────────────────────────────────┘
+        ┌──────────────┐      HTTPS/JWT      ┌─────────────────────┐
+        │   FRONTEND    │ ─────────────────► │      BACKEND        │
+        │  (Vercel)     │   request API      │  (Railway/Express)  │
+        │ MapLibre GL   │ ◄───────────────── │  /api/routes/*      │
+        └──────┬───────┘      GeoJSON        └──────────┬──────────┘
+               │                                        │  pg (Pool)
+        Supabase Realtime │                             │
+        (postgres_changes)│                    ┌────────▼─────────┐
+               ▼          │                    │  DATABASE         │
+        auto re-fetch     │                    │ PostgreSQL+PostGIS│
+                       data                          │ (Supabase)   │
 ```
 
-**User Story:**  
-*"Sebagai warga, saya ingin tahu seberapa berisiko lokasi tempat tinggal/aktivitas saya, agar bisa bersiap sebelum bencana terjadi."*
+### Alur Kerja
 
-**Fitur Teknis:**
-- ✅ Geolocation & address search
-- ✅ Spatial query ke PostGIS untuk overlap risk zones
-- ✅ Popup display dengan historical events
-- ✅ Distance calculation ke nearest shelter/faskes
+1. **Frontend** memuat peta via MapLibre GL dengan basemap GeoMapid (fallback OpenFreeMap `positron` bila gagal).
+2. Pada event `load`, frontend memanggil endpoint backend untuk mengambil data dalam bentuk **GeoJSON**:
+   - `/api/routes/puskesmas`, `/api/routes/flood`, `/api/routes/jalan?simplified=1`
+   - `/api/routes/heatmap/puskesmas?radius=750`
+3. **Backend (Node.js/Express)** menjalankan query **PostGIS** lewat driver `pg` (connection pool), lalu membungkus hasil menjadi **GeoJSON FeatureCollection**.
+4. **Frontend** menambahkan layer peta (banjir, jalan, puskesmas, heatmap) dan popup interaktif.
+5. **Analisis spasial** (isochrone / rute terpendek) diselesaikan **di backend Node.js** (`src/roadGraph.js`): graf jalan dibangun sekali (cache), Dijkstra dengan MinHeap, snapping ke simpul terdekat (radius 350 m), dengan 3 moda perjalanan.
+6. **Realtime (Supabase)**: frontend berlangganan `postgres_changes` pada ketiga tabel. Jika ada INSERT/UPDATE/DELETE, frontend otomatis memuat ulang data dan memperbarui layer.
 
 ---
 
-#### 2️⃣ **"Kalau Tidak Aman, Saya Harus ke Mana?"** — Peta Evakuasi & Isochrone
+## 🛠️ Stack Teknologi
 
-Dari lokasi pengguna, sistem menghitung & menampilkan:
-- **Jangkauan waktu tempuh** (isochrone) ke titik aman terdekat
-- **Opsi rute evakuasi realistis** dengan estimasi waktu perjalanan
-- **Overlay layer transportasi** untuk menunjukkan jalur terbaik
+### Frontend
 
-```
-PETA ISOCHRONE EVAKUASI
-- Warna biru: 5 menit tempuh
-- Warna hijau: 10 menit tempuh  
-- Warna kuning: 20 menit tempuh
-- Warna merah: >30 menit tempuh
+| Kategori | Teknologi |
+|---|---|
+| Build Tool | Vite 8 (multi-page: `index.html` + `src/map/map.html`) |
+| Bahasa | Vanilla JavaScript (ES Modules) |
+| Mapping | MapLibre GL JS v6 |
+| Styling | Tailwind CSS v4 (plugin `@tailwindcss/vite`) + CSS murni |
+| Geospasial | `@terraformer/wkt` (parsing WKT) |
+| Realtime | `@supabase/supabase-js` (subscription `postgres_changes`) |
 
-Dari: 📍 Rumah (Jl. Benda)
-Tujuan: 🏥 Shelter terdekat
-├─ Pendopo Kelurahan (1 km, ~5 menit jalan kaki)
-├─ SD Negeri 01 (1.5 km, ~10 menit)
-└─ Rumah Sakit Karya Bhakti (3 km, ~15 menit motor)
-```
+Framework **Tanpa** React/Vue — murni Vanilla JS untuk performa dan kesederhanaan.
 
-**User Story:**  
-*"Sebagai warga dalam situasi darurat, saya ingin tahu titik aman terdekat dan estimasi waktu tempuh, agar bisa mengambil keputusan evakuasi dengan cepat."*
+### Backend
 
-**Fitur Teknis:**
-- ✅ OSMnx + NetworkX untuk perhitungan routing
-- ✅ Isochrone polygon rendering dengan MapLibre
-- ✅ Multiple destination support (shelter, faskes, kantor)
-- ✅ Real-time update traffic consideration (optional)
+| Kategori | Teknologi |
+|---|---|
+| Runtime | Node.js (ES Modules) |
+| Web Framework | Express v5.2 |
+| Database Driver | `pg` (node-postgres) v8.23, connection pool dengan SSL |
+| Middleware | `cors`, `express.json`, `dotenv` |
+| Analisis Jaringan | `src/roadGraph.js` — Dijkstra custom (MinHeap), grid spatial indexing |
 
----
+Terdapat juga **microservice Python (Flask)** terpisah di `spatial-processor-engine` untuk operasi geometri geodesi (luas, jarak, buffer, centroid, irisan, dijkstra WKT) menggunakan `pyproj` & `shapely`.
 
-### 📊 Fitur Lengkap (MVP & Optional)
+### Database
 
-#### MVP (Wajib - Minggu 1-6)
+- **PostgreSQL** + **PostGIS**
+- Dihosting di **Supabase** (koneksi via pooler, port 6543, SSL)
 
-| # | Kategori | Fitur | Deskripsi | Status |
-|---|----------|-------|-----------|--------|
-| 1 | **Interface** | Landing Page | Hero section, value proposition, map preview | ✅ |
-| 2 | | WebMap Interaktif | Basemap, zoom/pan/geolocate, layer toggle | ✅ |
-| 3 | **Data Hazard** | Layer Banjir | Vector polygon dari PostGIS + styling gradient | ✅ |
-| 4 | | Layer Longsor | Vector polygon dari PostGIS + styling gradient | ✅ |
-| 5 | **Data Transportasi** | Layer Jalan | OSM jaringan jalan dengan status kerusakan | ✅ |
-| 6 | | Layer Fasilitas | POI shelter, rumah sakit, kantor pemerintah | ✅ |
-| 7 | **Analisis Spasial** | Popup Risiko | Detail hazard pada feature click (FU#1) | ✅ |
-| 8 | | Buffer/Radius | Zona bahaya dari sumber risiko (FU#1) | ✅ |
-| 9 | | Isochrone | Waktu tempuh ke evakuasi (FU#2) | ✅ |
-| 10 | **Visualisasi** | Heatmap | Kernel density kejadian historis | ✅ |
-| 11 | | Time Series | Slider waktu + MapLibre filter layer | ✅ |
-| 12 | | Search & Info | Search feature, info panel detail | ✅ |
+### Deployment
 
-#### Optional (Jika waktu >Minggu 7-8)
-
-| # | Fitur | Deskripsi | Prioritas |
-|---|-------|-----------|-----------|
-| 1 | Dashboard Statistik | Ringkas jumlah kejadian, area terdampak per periode | Medium |
-| 2 | Rute Alternatif | Visualisasi jaringan jalan alternatif saat jalan utama terdampak | Medium |
-| 3 | Animasi Auto Time Series | Play/pause otomatis untuk timeline | Low |
-| 4 | Export Data | Download data layer sebagai shapefile/GeoJSON | Low |
-| 5 | Mobile App Version | Progressive Web App untuk mobile offline support | Very Low |
+| Bagian | Platform |
+|---|---|
+| Frontend | **Vercel** (`vercel.json`, `framework: vite`, output `dist`) |
+| Backend | **Railway** (`Procfile`: `web: npm start`) |
+| Database | **Supabase** (Postgres + PostGIS + Realtime) |
+| Basemap | **GeoMapid** (`basemap.mapid.io` style `street-2d-building`) |
 
 ---
 
-## 🛠 Teknologi yang Digunakan
+## 🔌 Endpoint API
 
-### 📱 Frontend Stack
+Semua route Backend di-mount pada prefix `/api/routes` (dari `back-end/src/server.js`).
 
-**Teknologi Utama:**
-- **Mapping Library:** [MapLibre GL JS](https://maplibre.org/) v5.24+ — open-source, ringan, support vector & raster tiles
-- **Framework:** Vanilla JavaScript (ES6+) — tanpa framework abstraction layer
-- **Build Tool:** [Vite](https://vitejs.dev/) — dev server dengan HMR, fast build
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/) v4.3 + CSS murni
-- **Geospatial Utils:** [Terraformer WKT](https://github.com/terraformer-js/terraformer) — parsing WKT geometri
-- **HTTP Client:** Vanilla `fetch` API
+### Node.js (Express)
 
-**Dependencies:**
+| Method | Path | Fungsi |
+|---|---|---|
+| GET | `/api/routes/puskesmas` | Data puskesmas (GeoJSON) |
+| GET | `/api/routes/flood` | Data wilayah banjir (GeoJSON) |
+| GET | `/api/routes/jalan?simplified=1` | Data jaringan jalan (GeoJSON, geometri disederhanakan) |
+| GET | `/api/routes/network/route?startLng=&startLat=&endLng=&endLat=&mode=` | Rute terpendek antara dua titik |
+| GET | `/api/routes/isochrone?lng=&lat=&minutes=&mode=` | Area jangkauan waktu (isochrone) |
+| GET | `/api/routes/heatmap/puskesmas?radius=750` | Heatmap kepadatan puskesmas |
 
-```json
-{
-  "dependencies": {
-    "maplibre-gl": "^6.1.0",
-    "@terraformer/wkt": "^2.2.2",
-    "tailwindcss": "^4.3.3",
-    "@tailwindcss/vite": "^4.3.3"
-  },
-  "devDependencies": {
-    "vite": "^8.2.0"
-  }
-}
-```
+> Catatan: `routes/buffer.js` dan `routes/hospitals.js` merupakan router kosong (placeholder).
 
-**Struktur Frontend Modular:**
+### Python (Flask) — Spatial Processor Engine
 
-```javascript
-// src/webmap/
-├── main.js              // Entry point WebMap
-├── map.js               // MapLibre GL initialization
-│   └── Handlers: basemap load, style sync
-├── layers.js            // Layer source/paint definition
-│   └── Handlers: toggle, filter, paint update
-├── popup.js             // Feature popup builder
-│   └── Handlers: risk level display, historical data
-├── timeline.js          // Time series slider
-│   └── Handlers: date filter, animation control
-├── analysis.js          // Buffer/isochrone trigger
-│   └── Request: POST to backend /api/analysis/*
-├── api.js               // Fetch wrapper + error handling
-│   └── Functions: GET/POST with VITE_API_BASE_URL
-├── config/
-│   └── config.js        // Map center, zoom, layer config
-└── utils/
-    └── helpers.js       // Utility functions (distance, etc)
-```
-
-**Frontend Features:**
-- ✅ Multi-page build (index.html landing + map.html webmap)
-- ✅ Environment variables (.env) untuk API base URL, keys
-- ✅ Responsive design (mobile-first dengan Tailwind)
-- ✅ Accessibility (ARIA labels, keyboard navigation)
-- ✅ Performance (code splitting, lazy loading)
+| Method | Path | Fungsi |
+|---|---|---|
+| POST | `/spatial_computation/area` | Luas geometri (hektare) |
+| POST | `/spatial_computation/distance` | Jarak antara dua geometri |
+| POST | `/spatial_computation/length` | Panjang / keliling |
+| POST | `/geometry_manipulation/buffer` | Buffer metrik akurat |
+| POST | `/geometry_manipulation/centroid` | Titik centroid |
+| POST | `/geometry_manipulation/intersections` | Irisan dua geometri |
+| POST | `/network_analysis/dijkstra` | Rute terpendek pada network WKT |
 
 ---
 
-### 🔧 Backend Stack
+## ✨ Fitur Implementasi
 
-**Teknologi Utama:**
-- **Runtime:** Python 3.8+
-- **Web Framework:** Flask (minimal, REST API focus) atau FastAPI (async support)
-- **CORS Middleware:** flask-cors / starlette.middleware
-- **Geospatial Libraries:**
-  - [GeoPandas](https://geopandas.org/) — spatial operations, CRS transformation
-  - [Shapely](https://shapely.readthedocs.io/) — buffer, intersection, validation
-  - [Rasterio](https://rasterio.readthedocs.io/) — read/process GeoTIFF raster
-- **Database Driver:** psycopg2 / SQLAlchemy ORM
-- **Routing & Isochrone:**
-  - [OSMnx](https://osmnx.readthedocs.io/) — download & process OSM networks
-  - [NetworkX](https://networkx.org/) — graph operations, shortest path
-- **Production Server:** Gunicorn (WSGI) / Uvicorn (ASGI)
+Semua fitur berikut **benar-benar diimplementasikan** dalam kode (`front-end/src/map/map.js` dan modul pendukungnya).
 
-**Dependencies:**
+### Visualisasi Layer
 
-```
-Flask>=3.0
-Flask-CORS>=6.0
-GeoPandas>=0.12.0
-Shapely>=2.0
-Rasterio>=1.3
-PyProj>=3.0
-psycopg2-binary>=2.9
-SQLAlchemy>=2.0
-OSMnx>=1.5
-NetworkX>=2.8
-Gunicorn>=21.0
-python-dotenv>=0.19.0
-```
+- **Basemap** GeoMapid `street-2d-building` dengan fallback OpenFreeMap Positron.
+- **Layer Banjir** — fill polygon, warna sesuai `kelas_risi` (RENDAH hijau, SEDANG kuning, TINGGI merah).
+- **Layer Jalan** — `jalanMinor` (lokal/setapak) & `jalanMajor` (arteri/kolektor/tol), warna per kelas jalan.
+- **Layer Puskesmas** — titik circle biru.
+- **Layer Heatmap Puskesmas** — kepadatan (density) kernel (default nonaktif, dapat diaktifkan).
 
-**Struktur Backend:**
----
+### Panel Interaktif
 
-### 🗄️ Database Stack
+- **Panel Layer Peta** (kiri atas) — toggle visibilitas 5 layer.
+- **Panel Analisis Spasial** — pilih moda (Jalan Kaki 5 km/jam, Sepeda Motor 40 km/jam, Mobil 70 km/jam), batas waktu isochrone (5/10/15/20/30 menit), tombol **Isochrone** dan **Rute Terpendek**.
 
-**System:** PostgreSQL 12+ dengan PostGIS 3.0+
+### Analisis Spasial
 
-### 📊 Data Pipeline
+- **Isochrone** — hitung area jangkauan waktu melalui jaringan jalan + rute ke puskesmas terdekat, dengan ringkasan 5 puskesmas tercepat.
+- **Rute Terpendek** — cari jalur optimal antara dua titik (klik awal & tujuan), tampilkan jarak/waktu.
 
-**ETL Workflow (Extract → Transform → Load):**
+### Interaksi & Popup
 
-```
-┌─ Data Sumber Mentah
-├─ DIBI BNPB (banjir/longsor historis)
-├─ OSM Overpass API (jalan, faskes, shelter)
-├─ BIG (batas admin)
-└─ GEE Export (raster DEM, landsat, sentinel)
-    ↓ [Step 1: EXTRACT]
-    └─ Python scripts download data
-    
-    ↓ [Step 2: VALIDATE]
-    ├─ Cek CRS → transform ke EPSG:4326
-    ├─ Validasi geometri (Shapely ST_IsValid)
-    ├─ Hapus duplikat & null geometry
-    └─ Enrichment: add tanggal_kejadian, risiko level
-    
-    ↓ [Step 3: TRANSFORM]
-    ├─ Reclassify raster jadi kelas diskret
-    ├─ Polygonize (rasterio + gdal)
-    ├─ Merge layer vector
-    └─ CRS standardize
-    
-    ↓ [Step 4: LOAD]
-    ├─ Insert ke PostgreSQL+PostGIS
-    ├─ Build spatial index (GIST)
-    ├─ Vacuum & analyze untuk optimasi
-    └─ Validate row count
-    
-    ↓ [Step 5: EXPORT]
-    ├─ Query PostGIS → dump GeoJSON
-    └─ Serve via REST API
-```
+- **Popup Puskesmas** — nama, alamat, kecamatan, desa, koordinat, link Google Maps.
+- **Popup Banjir** — badge tingkat risiko, kecamatan, desa, koordinat.
+- **Popup Jalan** — kelas jalan, panjang segmen (km), ID segmen.
+- **Geolokasi** — tombol custom, high-accuracy, layer halo akurasi + titik lokasi, `flyTo`.
 
-**ETL Scripts:**
+### Realtime
 
-**Sample ETL Script (`etl_hazard.py`):**
-
----
-
-## 📍 Sumber Data
-
-### 1. Hazard (Bencana)
-
-| Sumber | Tipe Data | Coverage | Akses | Format |
-|--------|-----------|----------|-------|--------|
-| [DIBI BNPB](https://dibi.bnpb.go.id) | Kejadian bencana historis (point + polygon) | Nasional | Portal web, CSV download | CSV, Shapefile, GeoJSON |
-| [InaRISK BNPB](https://inarisk.bnpb.go.id) | Peta kerawanan bencana (raster) | Nasional | Portal web, WMS | Raster GeoTIFF, WMS tiles |
-| [BMKG](https://www.bmkg.go.id) | Curah hujan historis, warning | Nasional | Portal MEWS, API | Daily data, GeoTIFF |
-| BPBD Kota Bekasi | Data lokal bencana, dokumentasi foto | Lokal | Koordinasi langsung | Spreadsheet, shapefile |
-
-**Data Hazard yang Digunakan:**
-- **Banjir:** Polygon genangan dari DIBI 2015-2023, atribut: tanggal, area, korban
-- **Longsor:** Polygon longsor dari DIBI 2015-2023, atribut: tanggal, kedalaman, slope
-- **Kontrol Kualitas:** Validasi CRS EPSG:4326, hapus geometri null/invalid
-
-### 2. Transportasi & Infrastruktur
-
-| Sumber | Tipe Data | Coverage | Akses | Format |
-|--------|-----------|----------|-------|--------|
-| [OpenStreetMap (OSM)](https://www.openstreetmap.org) | Jaringan jalan, POI faskes/shelter | Global (detail di urban areas) | Overpass API, Geofabrik | GeoJSON, Shapefile, PBF |
-| Bappeda Kota Bekasi | POI lokal, titik evakuasi, shelter | Lokal Bekasi | Koordinasi | Spreadsheet + shapefile |
-| [Google Maps / Mapbox](https://developers.google.com/maps) | Geocoding, routing validation | Global | API key required | REST API response |
-
-**Data Transportasi yang Digunakan:**
-- **Jalan:** OSM primary/secondary roads, atribut: panjang, tipe, surface
-- **Shelter:** Sekolah, masjid, balai kelurahan dari OSM + Bappeda
-- **Faskes:** Rumah sakit, puskesmas dari OSM + Kemenkes database
-- **Kontrol Kualitas:** Snapping ke network node, validasi LineString
-
-### 3. Batas Administrasi
-
-| Sumber | Coverage | Akses | Format |
-|--------|----------|-------|--------|
-| [BIG (Badan Informasi Geospasial)](https://tanahair.indonesia.go.id) | Batas admin (provinsi, kab/kota, kelurahan) | Nasional | Portal tanahair.id | GeoJSON, Shapefile |
-
-**Data Admin yang Digunakan:**
-- **Batas Kota Bekasi:** Polygon kota + kelurahan/kecamatan
-- **Kontrol Kualitas:** Validate topology, repair polygon jika perlu
-
-### 4. Data Raster Historis (Opsional)
-
-| Sumber | Tipe Dataset | Resolusi | Akses | Format |
-|--------|--------------|----------|-------|--------|
-| [Google Earth Engine (GEE)](https://earthengine.google.com) | Sentinel-1 SAR, Landsat, SRTM DEM, CHIRPS rainfall | 10-30 m | Python API | Cloud-optimized GeoTIFF |
-| [USGS Earth Explorer](https://earthexplorer.usgs.gov) | Landsat archive, SRTM raw | 30 m | Download portal | GeoTIFF |
-
-**Data Raster yang Digunakan (optional):**
-- **DEM/Slope:** SRTM 30m untuk analisis kerentanan longsor
-- **Rainfall:** CHIRPS monthly untuk analisis banjir seasonal
-- **Landsat NDVI:** Untuk analisis vegetation coverage
-- **Sentinel-1 SAR:** Untuk detection genangan banjir (water body vs land)
-
-**Kontrol Kualitas:**
-- Reclassify kontinyu → diskret (rendah/sedang/tinggi)
-- Polygonize raster → vector
-- Merge dengan vector hazard layer
+- **Supabase Realtime** — subscribe `postgres_changes` pada tabel `puskesmas_utm`, `petarisiko_banjirbekasi`, `jalan_bekasi`; perubahan memicu pemuatan ulang layer secara otomatis tanpa refresh halaman.
 
 ---
 
@@ -403,301 +216,154 @@ python-dotenv>=0.19.0
 ```
 mapid-project/
 │
-├── 📄 README.md                          ← You are here
-├── 📄 LICENSE                            # MIT License
-├── 📄 .gitignore                         # Git ignore patterns
-├── 📄 package.json                       # Root monorepo config (optional)
+├── 📄 README.md                     ← Dokumentasi ini
+├── 📄 LICENSE                       # MIT License
+├── 📄 package.json                  # NPM workspaces (front-end & back-end)
 │
-├── 📂 front-end/                         # 🎨 Frontend Vite + Vanilla JS
-│   ├── 📄 index.html                     # Landing page (entry point 1)
-│   ├── 📄 map.html                       # WebMap halaman (entry point 2)
-│   ├── 📄 package.json                   # npm dependencies
-│   ├── 📄 vite.config.js                 # Multi-page build config
-│   ├── 📄 tailwind.config.js             # Tailwind CSS config
-│   ├── 📄 .env.example                   # Template environment variables
-│   ├── 📄 .gitignore
-│   │
-│   ├── 📂 public/                        # Static assets (favicon, images)
-│   │   └── favicon.svg
+├── 📂 front-end/                    # 🎨 Frontend (Vite + Vanilla JS + MapLibre)
+│   ├── 📄 index.html                # Landing page (entry 1)
+│   ├── 📄 vite.config.js            # Multi-page build + copy maplibre worker
+│   ├── 📄 vercel.json               # Konfigurasi deploy Vercel
+│   ├── 📄 tailwind.config.js
+│   ├── 📄 .env / .env.example       # Env vars (template tanpa nilai rahasia)
 │   │
 │   └── 📂 src/
-│       ├── 📂 webmap/                    # WebMap application
-│       │   ├── 📄 main.js                # Entry point, init all modules
-│       │   ├── 📄 map.js                 # MapLibre GL initialization
-│       │   ├── 📄 layers.js              # Layer management (add/toggle)
-│       │   ├── 📄 popup.js               # Feature popup builder & handler
-│       │   ├── 📄 timeline.js            # Time series slider + filtering
-│       │   ├── 📄 analysis.js            # Buffer/isochrone UI trigger
-│       │   └── 📄 api.js                 # Fetch wrapper, error handling
-│       │
-│       ├── 📂 landing/                   # Landing page application
-│       │   └── 📄 landing.js             # Landing page interactions
-│       │
-│       ├── 📂 styles/                    # Global styles
-│       │   ├── 📄 webmap.css             # WebMap-specific styles
-│       │   ├── 📄 landing.css            # Landing page styles
-│       │   └── 📄 style.css              # Global reusable styles
-│       │
-│       ├── 📂 config/
-│       │   └── 📄 config.js              # Map center, zoom, layer config
-│       │
-│       ├── 📂 controls/                  # UI controls
-│       │   └── 📄 controlsBasic.js       # Map controls (zoom, search, toggle)
-│       │
-│       ├── 📂 layers/                    # Layer definitions
-│       │   ├── 📄 vector.js              # Vector layer handler
-│       │   └── 📄 raster.js              # Raster layer handler (optional)
-│       │
-│       ├── 📂 popUps/                    # Popup templates
-│       │   └── 📄 basicpopups.js         # Popup HTML templates
-│       │
-│       ├── 📂 engine/                    # Analysis tools
-│       │   ├── 📄 areaTool.js            # Area calculation tool
-│       │   └── 📄 bufferTool.js          # Buffer interactive tool
-│       │
-│       └── 📂 utils/                     # Utility functions
-│           ├── 📄 helpers.js             # Common functions
-│           └── 📄 validators.js          # Input validation
+│       ├── 📄 config.js             # API base, style basemap, konfig Supabase
+│       ├── 📄 realtime.js           # Subscribe Supabase postgres_changes
+│       ├── 📄 style.css
+│       ├── 📂 map/
+│       │   ├── map.html             # WebMap page (entry 2)
+│       │   ├── map.js               # Inti aplikasi peta (layer, panel, analisis)
+│       │   ├── heatmap.js           # Layer heatmap puskesmas
+│       │   └── styleMap.css
+│       ├── 📂 engine/               # Analisis: isochrone, network, geolocation, area, buffer
+│       ├── 📂 popUps/               # Builder popup (puskesmas, banjir, jalan)
+│       ├── 📂 controls/             # Kontrol dasar
+│       └── 📂 legend/               # (placeholder)
 │
-├── 📂 back-end/                          # 🔧 Backend Node.js (Express.js, CORS, pg)
-
+└── 📂 back-end/                     # 🔧 Backend (Node.js Express + PostGIS)
+    ├── 📄 Procfile                  # Deploy Railway
+    ├── 📄 package.json              # express, pg, cors, dotenv
+    ├── 📄 .env / .env.example
+    │
+    ├── 📂 src/
+    │   ├── server.js                # Entry Express, mount routes
+    │   ├── db.js                    # pg Pool (Supabase / lokal)
+    │   └── roadGraph.js             # Graf jalan, Dijkstra, isochrone
+    ├── 📂 routes/                   # Definisi route per resource
+    ├── 📂 controllers/              # Logika handler → GeoJSON
+    ├── 📂 services/                 # Query SQL ke database
+    ├── 📂 data/                     # Data mentah (bekasi_jalan.geojson, dll.)
+    └── 📂 spatial-processor-engine/ # Microservice Python (Flask) geometri
 ```
 
-**Key Structure Highlights:**
-
 ---
 
-## 🚀 Deployment & CI/CD
+## 🚀 Cara Menjalankan
 
-### Frontend Deployment
+### Prasyarat
 
-**Platform:** Netlify (recommended) / GitHub Pages / Vercel
-
-**Setup Netlify (via GitHub Integration):**
-
-
-**GitHub Actions Workflow (`.github/workflows/deploy-frontend.yml`):**
-
-
-**Netlify Configuration (`front-end/netlify.toml`):**
-
-
-### Backend Deployment
-
-**Platform:** Railway / Render / Heroku / AWS EC2
-
-**Setup Railway:**
-
-
-
-**GitHub Actions Workflow (`.github/workflows/deploy-backend.yml`):**
-
-
-**Backend Environment Variables (`.env` / GitHub Secrets):**
-
-
-
----
-
-## ▶️ Cara Menjalankan
-
-### Prerequisites
-
-Pastikan sudah installed:
 - **Node.js** 16+ dan npm
-- **Python** 3.8+ dan pip
-- **PostgreSQL** 12+ dengan PostGIS 3.0+
+- **PostgreSQL** 12+ dengan **PostGIS** (atau akun **Supabase**)
 - **Git**
 
-### Step-by-Step Setup
+### 1. Clone & Install Dependencies
 
-#### **1. Clone Repository**
+```bash
+git clone https://github.com/shinmarizz/geoinsight-bekasi-city.git
+cd mapid-project
+npm install
+```
 
+### 2. Setup Backend
 
-#### **2. Setup Backend (Python)**
+```bash
+cd back-end
+cp .env.example .env
+# isi DATABASE_URL / DB_* sesuai database lokal atau Supabase Anda
+npm install
+npm run dev        # server berjalan di http://localhost:5000
+```
 
+### 3. Setup Frontend
 
-**Verifikasi Backend:**
+```bash
+cd front-end
+cp .env.example .env
+# isi VITE_API_BASE_URL = http://127.0.0.1:5000 (untuk lokal)
+# isi VITE_API_GEOMAPID, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+npm install
+npm run dev        # dev server Vite
+```
 
-#### **3. Setup Frontend (Node.js)**
+### 4. Build Produksi
 
+```bash
+cd front-end
+npm run build      # hasil di dist/
+npm run preview
+```
 
-**Akses Aplikasi:**
-
-#### **4. Build untuk Production**
-
-#### **5. Using Docker (Optional)**
-
----
-
-## 📖 Dokumentasi Teknis
-
-### API Documentation
-
-Lihat [API_REFERENCE.md](docs/API_REFERENCE.md) untuk:
-- Endpoint list lengkap
-- Request/response examples
-- Error codes & handling
-- Rate limiting & caching strategy
-
-### Database Schema
-
-Lihat [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) untuk:
-- Table structure detail
-- Spatial indexes
-- Sample queries
-
-### System Architecture
-
-Lihat [ARCHITECTURE.md](docs/ARCHITECTURE.md) untuk:
-- Component diagram
-- Data flow
-- Technology stack justification
-
-### Deployment Guide
-
-Lihat [DEPLOYMENT.md](docs/DEPLOYMENT.md) untuk:
-- Railway/Render setup
-- GitHub Actions workflows
-- Environment configuration
-- Backup & disaster recovery
+> **Catatan Maplibre worker:** `vite.config.js` berisi plugin `copyMaplibreWorkers()` yang menyalin `maplibre-gl-worker.mjs` ke output build. Ini penting agar peta berfungsi di Vercel (worker tidak boleh 404).
 
 ---
 
-## 🗓️ Roadmap
+## 🧪 Deployment
 
-### Timeline Pengembangan (8 Minggu)
+### Frontend — Vercel
 
-| **Minggu** | **Milestone** | **Fokus Utama** | **Deliverable** |
-|---|---|---|---|
-| **1** | **Planning & Setup** | Penetapan wilayah studi, audit data, setup environment | ✅ Environment siap, data sources identified, GitHub repo setup |
-| **2** | **Infrastructure** | PostgreSQL+PostGIS setup, database schema, ETL scripts | ✅ Database online, initial data loaded, backend boilerplate |
-| **3** | **MVP Peta** | Landing page design, basemap MapLibre, basic layer API | ✅ Landing page live, peta dasar tampil, 2 endpoint API berfungsi |
-| **4** | **Fitur Unggulan #1 (Awal)** | Layer hazard styling, popup info, buffer calculation | ✅ Risk layer visible, popup menampilkan detail, buffer endpoint working |
-| **5** | **Fitur Unggulan #1 (Lanjut)** | Buffer radius render, isochrone backend compute | ✅ Fitur Unggulan #1 selesai, isochrone prototipe jalan |
-| **6** | **Fitur Unggulan #2 & Analytics** | Isochrone render, time series slider, heatmap | ✅ Fitur Unggulan #2 selesai, time series filtering berfungsi, heatmap tampil |
-| **7** | **Polish & Optimization** | Responsive design, performa testing, responsivitas mobile | ✅ Semua fitur MVP stabil, responsive tested, load time <3s |
-| **8** | **Finalisasi & Sidang** | Deployment production, dokumentasi final, presentasi | ✅ WebGIS live di URL public, semua docs lengkap, sidang berhasil |
+Environtment variables yang perlu di-set di dashboard Vercel (nilai diisi sesuai environment Anda, **jangan** memakai nilai rahasia di berkas publik):
 
-### Feature Backlog (Post-MVP)
+```
+VITE_API_BASE_URL=https://your-backend.up.railway.app
+VITE_API_GEOMAPID=https://basemap.mapid.io/styles/street-2d-building/style.json?key=YOUR_GEOMAPID_KEY
+VITE_SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+VITE_SUPABASE_SCHEMA=public
+VITE_SUPABASE_TABLES=puskesmas_utm,petarisiko_banjirbekasi,jalan_bekasi
+```
 
-- [ ] **v2.0:** Real-time hazard alerts via push notification
-- [ ] **v2.0:** Mobile app (React Native / Flutter)
-- [ ] **v2.0:** Advanced analytics dashboard (time series forecasting)
-- [ ] **v2.0:** Community reporting feature (crowdsourced hazard data)
-- [ ] **v3.0:** Multi-language support (EN, ID, Javanese)
-- [ ] **v3.0:** Integration dengan early warning system BMKG
+Build command: `npm run build` · Output directory: `dist`.
 
----
+### Backend — Railway
 
-## ⚠️ Risiko & Mitigasi
+- Set `DATABASE_URL` ke connection string Supabase Anda.
+- `Procfile` berisi `web: npm start` (menjalankan `node src/server.js`).
+- Railway mem-build dari folder `back-end`.
 
-| Risiko | Probabilitas | Dampak | Strategi Mitigasi |
-|--------|-----------|--------|-------------------|
-| **Data BPBD/BNPB tidak lengkap** | Tinggi | Cakupan analisis terbatas | Fallback ke OSM + survey manual, tambah disclaimer di UI |
-| **ORS API rate limit / paid subscription** | Sedang | Isochrone timeout pada traffic tinggi | Setup OSMnx self-compute (gratis), implementasi caching, rate limiting |
-| **Query PostGIS lambat saat data besar** | Sedang | UX jelek pada zoom tinggi, timeout API | Build spatial index GIST, precompute density, limit feature count |
-| **Scope creep feature requests** | Tinggi | Deadline terlewat | Kunci MVP minggu 1, move extra features ke "Optional" backlog |
-| **Kesalahan CRS/geometri data** | Sedang | Misalignment peta, buffer salah | Validasi & standardisasi EPSG:4326 di ETL, test spatial queries |
-| **Server down / database crash** | Rendah | Downtime aplikasi | Backup harian, redundant database, monitoring alerts |
-| **Security vulnerability** | Rendah | Data leak / unauthorized access | Input validation, SQL injection prevention, HTTPS only, rate limiting |
+### Database & Realtime — Supabase
+
+1. Buat tabel `puskesmas_utm`, `petarisiko_banjirbekasi`, `jalan_bekasi` (dengan PostGIS).
+2. Aktifkan **Realtime** untuk ketiga tabel di **Table Editor** (flag Realtime).
+3. Ambil **Project URL** dan **anon key** dari Supabase Dashboard → Settings → API.
 
 ---
 
-## ✅ Deliverables Checklist
+## ✅ Hasil
 
-- ✅ **Aplikasi WebGIS** live & deployed (landing page + webmap + API)
-- ✅ **Repository GitHub** — source code terdokumentasi, README lengkap
-- ✅ **Database Production** — PostgreSQL+PostGIS dengan data historis 5+ tahun
-- ✅ **REST API** — semua endpoint documented & tested
-- ✅ **Laporan Tugas Akhir** — BAB 1-5 (latar belakang, metodologi, hasil, pembahasan, kesimpulan)
-- ✅ **Dokumentasi Teknis** — API spec, database schema, deployment guide
-- ✅ **Video Demo** — walkthrough fitur & analisis spasial (~5-10 menit)
-- ✅ **Slide Presentasi** — untuk sidang tugas akhir (~20 slide)
+Proyek **GeoInsight WebGIS** berhasil dibangun dan di-deploy end-to-end:
+
+- **Backend & Database** terhubung ke Supabase (PostgreSQL+PostGIS) dan berjalan di Railway — terverifikasi setiap endpoint mengembalikan data (62 puskesmas, 565 fitur banjir, ±31.081 segmen jalan).
+- **Frontend** di-deploy di Vercel dengan multi-page (landing + peta), basemap tampil, dan worker MapLibre berfungsi (masalah 404 worker teratasi).
+- **Fitur** layer interaktif, popup, panel analisis, isochrone, rute terpendek, geolokasi, dan heatmap **berfungsi**.
+- **Realtime** terpasang via Supabase sehingga data dapat ter-update otomatis.
+
+### Permasalahan yang Ditemukan & Diselesaikan
+
+1. **Data tidak tampil di production** — `VITE_API_BASE_URL` awalnya masih menunjuk `127.0.0.1`; diperbaiki agar menunjuk URL backend Railway.
+2. **Reference Error `GEOMAPID_STYLE_BASE is not defined`** — bundle lama; diselesaikan dengan deploy kode `config.js` terbaru.
+3. **Peta kosong (basemap & data tidak render)** — file worker MapLibre (`maplibre-gl-worker.mjs`) tidak ikut ter-build sehingga Vercel mengembalikan 404. Diselesaikan dengan plugin Vite yang menyalin worker ke output build.
 
 ---
 
 ## 📄 Lisensi
 
-Proyek ini dilisensikan di bawah **MIT License** — bebas digunakan untuk tujuan akademis, komersial, atau internal.
+Proyek ini dilisensikan di bawah **MIT License**.
 
-```
-MIT License
+### Atribusi Data Spasial
 
-Copyright (c) 2024 GeoInsight Team - MAPID
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-...
-```
-
-**Attribution untuk Data Spasial:**
-
-- **BNPB/DIBI data** — sesuai [Term of Service BNPB](https://dibi.bnpb.go.id)
-- **OSM data** — sesuai [ODbL license](https://www.openstreetmap.org/copyright)
-- **BIG data** — sesuai [BIG data sharing policy](https://www.big.go.id)
-- **GEE data** — sesuai [Google Earth Engine Terms](https://earthengine.google.com/terms/)
-
----
-
-## 🤝 Kontribusi & Dukungan
-
-### Reporting Issues
-
-Temukan bug atau punya saran? Buka [GitHub Issue](https://github.com/yourusername/mapid-project/issues) dengan template:
-- **Bug Report:** Describe, reproduce steps, expected vs actual
-- **Feature Request:** Use case, proposed solution, benefit
-
-### Contributing Code
-
-Pull requests welcome! Ikuti:
-1. Fork repository
-2. Buat feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk guidelines detail.
-
-### Contact
-
-- 📧 **Email:** your-email@example.com
-- 💬 **GitHub Issues:** [Buka issue](https://github.com/yourusername/mapid-project/issues)
-- 💬 **GitHub Discussions:** [Mulai diskusi](https://github.com/yourusername/mapid-project/discussions)
-
----
-
-## 📚 Referensi & Bacaan Lanjutan
-
-### Official Documentation
-- [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/)
-- [PostGIS Manual 3.0](https://postgis.net/docs/manual-3.0/)
-- [GeoPandas User Guide](https://geopandas.org/docs/user_guide.html)
-- [Vite Documentation](https://vitejs.dev/)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
-- [Flask Documentation](https://flask.palletsprojects.com/)
-
-### Geospatial Resources
-- [OpenRouteService API](https://openrouteservice.org/dev/)
-- [OSMnx + NetworkX Tutorial](https://medium.com/nerd-for-tech/routing-with-osmnx-and-networkx)
-- [PostGIS Spatial Indexing](https://postgis.net/docs/manual-3.0/using_postgis_dbmanagement.html)
-- [Shapely Geometric Operations](https://shapely.readthedocs.io/en/stable/reference/shapely.html)
-
-### Data Sources
-- [DIBI BNPB Data Portal](https://dibi.bnpb.go.id)
-- [InaRISK Risk Platform](https://inarisk.bnpb.go.id)
-- [Bappenas Geospatial](https://gis-bappenas.id/)
-- [Google Earth Engine](https://earthengine.google.com/)
-
-### Best Practices
-- [Web Mapping Best Practices](https://wiki.openstreetmap.org/wiki/Web_maps)
-- [Spatial Database Performance](https://trac.osgeo.org/postgis/wiki/Performance)
-- [GeoJSON Specification](https://tools.ietf.org/html/rfc7946)
-- [RESTful API Design](https://restfulapi.net/)
+- **OpenStreetMap** — data jalan, sesuai lisensi [ODbL](https://www.openstreetmap.org/copyright).
+- **Data risiko banjir** — sesuai kebijakan penyedia data (BPBD/InaRISK/BNPB).
 
 ---
 
