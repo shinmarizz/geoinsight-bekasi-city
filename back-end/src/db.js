@@ -15,7 +15,4 @@ const pool = process.env.DATABASE_URL
         port: process.env.DB_PORT
     })
 
-console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-console.log('DATABASE_URL value:', process.env.DATABASE_URL);
-
 export default pool

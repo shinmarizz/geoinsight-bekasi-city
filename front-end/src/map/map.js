@@ -7,6 +7,7 @@ import { PUSKESMAS_HEATMAP_LAYER_ID, addPuskesmasHeatmapLayer } from './heatmap'
 import { loadIsochrone, clearIsochrone, formatIsochroneSummary } from '../engine/isochroneTool'
 import { requestShortestPath, clearShortestPath, formatRouteSummary } from '../engine/networkTool'
 import { initGeolocation } from '../engine/geolocationTool'
+import { initRealtime, destroyRealtime } from '../realtime'
 
 const existingMap = document.getElementById('map')
 let mapElement = existingMap
@@ -108,12 +109,7 @@ const TRAVEL_MODE_OPTIONS = [
 const getSelectedMode = () => analysisModeSelect?.value || 'jalan_kaki'
 const getSelectedMinutes = () => Number(analysisMinutesSelect?.value || 15)
 
-const loadData = async () => {
-  const data = await fetchMapData()
-  puskesmas = data.puskesmas
-  flood = data.flood
-  jalan = data.jalan ?? jalan
-
+const fetchHeatmap = async () => {
   try {
     const heatmapResponse = await fetch(`${API_BASE}/api/routes/heatmap/puskesmas?radius=750`)
     if (!heatmapResponse.ok) throw new Error(`Heatmap gagal dimuat: ${heatmapResponse.status}`)
@@ -121,8 +117,31 @@ const loadData = async () => {
   } catch (error) {
     console.error(error)
   }
+}
+
+const loadData = async () => {
+  const data = await fetchMapData()
+  puskesmas = data.puskesmas
+  flood = data.flood
+  jalan = data.jalan ?? jalan
+
+  await fetchHeatmap()
 
   addGeoJsonLayers()
+}
+
+const refreshMapData = async () => {
+  const data = await fetchMapData()
+  puskesmas = data.puskesmas
+  flood = data.flood
+  jalan = data.jalan ?? jalan
+
+  await fetchHeatmap()
+
+  map.getSource('puskesmasRoute')?.setData(puskesmas)
+  map.getSource('floodRoute')?.setData(flood)
+  map.getSource('jalanRoute')?.setData(jalan)
+  map.getSource('puskesmasHeatmap')?.setData(puskesmasHeatmap)
 }
 
 map.addControl(new maplibregl.NavigationControl(), "top-right")
@@ -646,6 +665,7 @@ map.on('click', (event) => {
 map.on('load', () => {
   loadData()
   initGeolocation(map)
+  initRealtime(() => refreshMapData())
 })
 map.on('style.load', () => {
   addGeoJsonLayers()
